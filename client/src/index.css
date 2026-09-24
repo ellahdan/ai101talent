@@ -1,0 +1,154 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand palette taken from the v0 landing page */
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-soft-foreground: var(--brand-soft-foreground);
+  --color-brand-bright: var(--brand-bright);
+  --color-chip: var(--chip);
+
+  --radius-sm: calc(var(--radius) * .6);
+  --radius-md: calc(var(--radius) * .8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  color-scheme: light;
+  /* Brand palette used by the landing page (exact v0 values) */
+  --surface: #ffffff;
+  --ink: #16302F;
+  --ink-foreground: #ffffff;
+  --brand: #14A800;
+  --brand-hover: #108d00;
+  --brand-foreground: #ffffff;
+  --brand-soft: #E7F7E4;
+  --brand-soft-foreground: #16740d;
+  --brand-bright: #9CE89A;
+  --chip: #F0F1EC;
+  /* Charts: one validated series hue (passes contrast on both card surfaces) + recessive grid */
+  --chart-series: #14A800;
+  --chart-grid: rgba(22, 48, 47, .10);
+
+  /* shadcn tokens (v0 values; page background/foreground follow the landing page) */
+  --background: #F7F7F2;
+  --foreground: #16302F;
+  --card: #fffaf1;
+  --card-foreground: #0A2A2E;
+  --popover: #fffaf1;
+  --popover-foreground: #0A2A2E;
+  --primary: #0A2A2E;
+  --primary-foreground: #F2EEE3;
+  --secondary: #e5f5df;
+  --secondary-foreground: #0A2A2E;
+  --muted: #e8e3d8;
+  --muted-foreground: #547073;
+  --accent: #77DF7B;
+  --accent-foreground: #0A2A2E;
+  --destructive: #c7362b;
+  --border: rgba(10,42,46,.14);
+  --input: rgba(10,42,46,.16);
+  --ring: #5FC763;
+  --radius: 1rem;
+}
+
+/* Dark mode builds on v0's .dark palette */
+.dark {
+  color-scheme: dark;
+  --surface: #12383b;
+  --ink: #061d20;
+  --ink-foreground: #ffffff;
+  --brand: #14A800;
+  --brand-hover: #18bf00;
+  --brand-foreground: #ffffff;
+  --brand-soft: #16463a;
+  --brand-soft-foreground: #9CE89A;
+  --brand-bright: #9CE89A;
+  --chip: #173f43;
+  --chart-series: #14A800;
+  --chart-grid: rgba(242, 238, 227, .12);
+
+  --background: #0A2A2E;
+  --foreground: #F2EEE3;
+  --card: #12383b;
+  --card-foreground: #F2EEE3;
+  --popover: #12383b;
+  --popover-foreground: #F2EEE3;
+  --primary: #77DF7B;
+  --primary-foreground: #0A2A2E;
+  --secondary: #173f43;
+  --secondary-foreground: #F2EEE3;
+  --muted: #173f43;
+  --muted-foreground: #a1b6b5;
+  --accent: #77DF7B;
+  --accent-foreground: #0A2A2E;
+  --destructive: #f07167;
+  --border: rgba(242,238,227,.15);
+  --input: rgba(242,238,227,.18);
+  --ring: #77DF7B;
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+  body { @apply bg-background text-foreground antialiased; font-family: Arial, Helvetica, sans-serif; }
+  ::selection { background: #77DF7B; color: #0A2A2E; }
+}
+
+/* Slow drifting shapes behind the hero */
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(4%, -6%, 0) scale(1.08); }
+  66% { transform: translate3d(-5%, 4%, 0) scale(.95); }
+}
+.animate-drift { animation: drift 18s ease-in-out infinite; will-change: transform; }
+.animate-drift-slow { animation: drift 26s ease-in-out infinite reverse; will-change: transform; }
+
+@keyframes caret-blink { 50% { opacity: 0; } }
+.animate-caret { animation: caret-blink 1s step-end infinite; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+
+/* Rich-text job descriptions (sanitized HTML from the server) */
+@layer components {
+  .prose-job { @apply text-[15px] leading-relaxed text-foreground/80; }
+  .prose-job > * + * { @apply mt-4; }
+  .prose-job h2, .prose-job h3, .prose-job h4 { @apply mt-8 text-lg font-semibold tracking-[-.02em] text-foreground; }
+  .prose-job > :first-child { @apply mt-0; }
+  .prose-job ul { @apply list-disc space-y-1.5 pl-5; }
+  .prose-job ol { @apply list-decimal space-y-1.5 pl-5; }
+  .prose-job li::marker { @apply text-brand; }
+  .prose-job a { @apply font-semibold text-brand underline underline-offset-4; }
+  .prose-job strong, .prose-job b { @apply font-semibold text-foreground; }
+  .prose-job blockquote { @apply border-l-2 border-brand pl-4 italic; }
+  .prose-job code { @apply rounded bg-chip px-1 py-0.5 text-[13px]; }
+}

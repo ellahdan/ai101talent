@@ -1,0 +1,40 @@
+# Render Blueprint for the AI101 Talents API (staging/demo).
+# In Render: New → Blueprint → select this repository. You'll be asked for the `sync: false` values.
+services:
+  - type: web
+    name: ai101-talents-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    # Staging: every deploy re-seeds the demo database and bakes the sample CV files into the build,
+    # so the demo always starts clean. Remove the seed step for a real production deployment.
+    buildCommand: npm ci --include=dev && npm run build -w server && npm run seed -w server -- --yes --force
+    startCommand: npm start -w server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      # The embedded MongoDB is only for local development; don't download it during builds.
+      - key: MONGOMS_DISABLE_POSTINSTALL
+        value: "1"
+      # Use a separate staging database, e.g. mongodb+srv://…/ai101talents_staging?retryWrites=true&w=majority
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # The Vercel URL of the web app, e.g. https://ai101-talents.vercel.app
+      - key: CLIENT_URL
+        sync: false
+      # Vercel's rewrite + Render's proxy sit in front of the API.
+      - key: TRUST_PROXY
+        value: "2"
+      # Staging: emails are written to the log instead of being sent. Set to smtp and add SMTP_* for production.
+      - key: EMAIL_TRANSPORT
+        value: log
+      # Staging: files on the instance disk (reset on every deploy/restart). Use s3 + STORAGE_S3_* for production.
+      - key: STORAGE_DRIVER
+        value: local
+      - key: RETENTION_ENABLED
+        value: "true"

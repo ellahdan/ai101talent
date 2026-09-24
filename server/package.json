@@ -1,0 +1,55 @@
+{
+  "name": "@ai101/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file-if-exists=.env dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "create-admin": "tsx --env-file-if-exists=.env src/scripts/create-admin.ts",
+    "seed": "tsx --env-file-if-exists=.env src/scripts/seed.ts",
+    "retention": "tsx --env-file-if-exists=.env src/scripts/retention.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1139.0",
+    "@aws-sdk/s3-request-presigner": "^3.1139.0",
+    "bcryptjs": "^3.0.3",
+    "compression": "^1.8.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.12.3",
+    "mongoose": "^9.10.2",
+    "multer": "^2.4.0",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^10.0.10",
+    "pdf-parse": "^2.4.5",
+    "sanitize-html": "^2.17.7",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^26.6.2",
+    "@types/nodemailer": "^8.0.2",
+    "@types/sanitize-html": "^2.16.1",
+    "mongodb-memory-server": "^11.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "config": {
+    "mongodbMemoryServer": {
+      "downloadDir": "../node_modules/.cache/mongodb-memory-server",
+      "version": "8.2.6"
+    }
+  }
+}

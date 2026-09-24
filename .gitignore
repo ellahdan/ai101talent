@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+*.tsbuildinfo
+
+# Environment variables (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Local data (development uploads, embedded MongoDB)
+server/uploads/
+server/.data/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
