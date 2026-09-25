@@ -47,13 +47,21 @@ export function RequestDialog({ candidate, mode = 'company', onClose }: { candid
   const usableJobs = (jobs.data ?? []).filter((j) => j.status !== 'closed')
   const [timeCount, setTimeCount] = useState(2)
   const [step, setStep] = useState<'form' | 'account'>('form')
+  const [invalid, setInvalid] = useState(false)
   const { register, handleSubmit, control, setValue, getValues, formState: { errors } } = useForm<Values, unknown, z.output<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: { jobId: '', roleTitle: '', message: '', times: [{ value: '' }, { value: '' }, { value: '' }] },
   })
   const jobId = useWatch({ control, name: 'jobId' })
 
+  /** A failed Send always gets visible feedback: a message next to the button and the first problem scrolled into view. */
+  const onInvalid = () => {
+    setInvalid(true)
+    requestAnimationFrame(() => document.querySelector('[role=dialog] [aria-invalid="true"], [role=dialog] .text-destructive')?.scrollIntoView({ block: 'center', behavior: 'smooth' }))
+  }
+
   const onSubmit = handleSubmit((v) => {
+    setInvalid(false)
     const payload = {
       candidateId: candidate.id,
       roleTitle: v.jobId ? undefined : v.roleTitle,
@@ -74,7 +82,7 @@ export function RequestDialog({ candidate, mode = 'company', onClose }: { candid
         },
       },
     )
-  })
+  }, onInvalid)
 
   /** Removes one time and shifts the later ones up, so no hidden value is submitted. */
   const removeTime = (index: number) => {
@@ -119,7 +127,7 @@ export function RequestDialog({ candidate, mode = 'company', onClose }: { candid
             <ShieldCheck size={17} className="mt-0.5 shrink-0 text-brand" aria-hidden />
             <p>{t.intro}</p>
           </div>
-          <form onSubmit={onSubmit} noValidate className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+          <form onSubmit={onSubmit} noValidate className="space-y-4">
             {!guest && (
               <Field label={t.position}>
                 {(ids) => (
@@ -143,7 +151,7 @@ export function RequestDialog({ candidate, mode = 'company', onClose }: { candid
               <div className="mt-2 space-y-2">
                 {Array.from({ length: timeCount }, (_, i) => (
                   <div key={i} className="flex gap-2">
-                    <Input type="datetime-local" min={minTime} aria-label={t.time(i + 1)} className="h-10" {...register(`times.${i}.value`)} />
+                    <Input type="datetime-local" min={minTime} aria-label={t.time(i + 1)} aria-invalid={i === 0 && timesError ? true : undefined} className="h-10" {...register(`times.${i}.value`)} />
                     {timeCount > 1 && (
                       <button type="button" aria-label={t.removeTime(i + 1)} onClick={() => removeTime(i)} className="grid size-10 shrink-0 place-items-center rounded-md text-foreground/50 hover:bg-muted"><Trash2 size={15} aria-hidden /></button>
                     )}
@@ -153,10 +161,14 @@ export function RequestDialog({ candidate, mode = 'company', onClose }: { candid
               {timeCount < 3 && <button type="button" onClick={() => setTimeCount((n) => n + 1)} className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand"><Plus size={14} aria-hidden /> {t.addTime}</button>}
               {(timesError?.message ?? timesError?.root?.message) && <p className="mt-1.5 text-xs font-medium text-destructive">{translateMessage(timesError?.message ?? timesError?.root?.message ?? '')}</p>}
             </fieldset>
-            {create.error && <Alert variant="error">{create.error.message}</Alert>}
-            <div className="flex justify-end gap-2 pt-1">
-              <Button type="button" variant="outline" className="h-10 rounded-md" onClick={onClose}>{c.actions.cancel}</Button>
-              <Button type="submit" disabled={create.isPending} className="h-10 rounded-md bg-brand px-5 text-brand-foreground hover:bg-brand-hover">{create.isPending && <Spinner />} {t.submit}</Button>
+            {/* Kept in view at the bottom of the dialog, with any problem right above the button. */}
+            <div className="sticky -bottom-6 z-10 -mx-6 -mb-6 space-y-3 border-t border-foreground/10 bg-surface px-6 py-4">
+              {invalid && Object.keys(errors).length > 0 && <Alert variant="error">{t.fixErrors}</Alert>}
+              {create.error && <Alert variant="error">{create.error.message}</Alert>}
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" className="h-10 rounded-md" onClick={onClose}>{c.actions.cancel}</Button>
+                <Button type="submit" disabled={create.isPending} className="h-10 rounded-md bg-brand px-5 text-brand-foreground hover:bg-brand-hover">{create.isPending && <Spinner />} {t.submit}</Button>
+              </div>
             </div>
           </form>
         </>
