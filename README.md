@@ -174,7 +174,7 @@ Put it behind HTTPS (Render, Railway, Fly.io, a VPS with Nginx/Caddy…). Leave 
 
 1. Push the repository to GitHub.
 2. Atlas → Network Access: allow `0.0.0.0/0` (Render's free instances have no fixed IP). Use a separate database for staging, e.g. `…mongodb.net/ai101talents_staging?…`.
-3. Render → New → Blueprint → pick the repo. Enter `MONGODB_URI` and `CLIENT_URL` (your Vercel URL, e.g. `https://ai101-talents.vercel.app`). Note the service URL (e.g. `https://ai101-talents-api.onrender.com`).
+3. Render → New → Blueprint → pick the repo. Enter `MONGODB_URI` and `CLIENT_URL` (your Vercel URL, e.g. `https://ai101-talents.vercel.app`). Note the service URL (e.g. `https://ai101-talents-api-eubp.onrender.com`).
 4. If the Render URL differs from the one in `vercel.json`, update the `/api/:path*` rewrite destination.
 5. `npx vercel login`, then from the repo root: `npx vercel --prod`.
 
