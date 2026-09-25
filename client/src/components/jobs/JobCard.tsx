@@ -6,7 +6,8 @@ import { defineText, useT } from '@/i18n'
 
 const text = defineText({ new: 'New', featured: 'Featured', view: 'View opportunity' }, { new: 'Neu', featured: 'Empfohlen', view: 'Stelle ansehen' })
 
-export function JobCard({ job, href = `/jobs/${job.id}` }: { job: JobSummary; href?: string }) {
+/** `showSalary={false}` hides the salary (used on the landing page). */
+export function JobCard({ job, href = `/jobs/${job.id}`, showSalary = true }: { job: JobSummary; href?: string; showSalary?: boolean }) {
   const t = useT(text)
   return (
     <article className="relative flex h-full flex-col rounded-lg border border-foreground/12 bg-surface p-5 transition hover:-translate-y-1 hover:border-brand/60 hover:shadow-lg focus-within:border-brand/60">
@@ -22,7 +23,7 @@ export function JobCard({ job, href = `/jobs/${job.id}` }: { job: JobSummary; hr
       </h3>
       <p className="mt-1 text-sm text-foreground/55">{job.company.name} · {job.location}</p>
       <p className="mt-5 text-sm text-foreground/65">{jobMeta(job)}</p>
-      <p className="mt-1 font-semibold">{formatSalary(job.salaryRange)}</p>
+      {showSalary && <p className="mt-1 font-semibold">{formatSalary(job.salaryRange)}</p>}
       <div className="mt-5 flex flex-wrap gap-2">
         {job.requiredSkills.slice(0, 4).map((skill) => <span key={skill} className="rounded-full bg-chip px-2.5 py-1 text-xs">{skill}</span>)}
       </div>
