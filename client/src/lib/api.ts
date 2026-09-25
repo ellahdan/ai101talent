@@ -1,10 +1,11 @@
 import type { ApiFailure } from '@/types'
+import { translateMessage } from '@/i18n'
 
 const BASE_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
 export class ApiError extends Error {
   constructor(message: string, readonly code: string, readonly status: number, readonly details?: unknown) {
-    super(message)
+    super(translateMessage(message))
     this.name = 'ApiError'
   }
 }

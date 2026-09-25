@@ -1,12 +1,15 @@
 import { useSearchParams } from 'react-router-dom'
+import { useT } from '@/i18n'
+import { adminText } from '@/i18n/admin'
 import { cn } from '@/lib/utils'
 
 /** Status filter tabs that live in the URL (?status=…). */
 export function StatusTabs<T extends string>({ options, counts }: { options: { value: T | ''; label: string }[]; counts?: Partial<Record<T, number>> }) {
   const [params, setParams] = useSearchParams()
+  const t = useT(adminText).tabs
   const current = params.get('status') ?? ''
   return (
-    <div role="tablist" aria-label="Filter by status" className="flex flex-wrap gap-1 rounded-lg bg-chip p-1">
+    <div role="tablist" aria-label={t.label} className="flex flex-wrap gap-1 rounded-lg bg-chip p-1">
       {options.map((o) => {
         const active = current === o.value
         const count = o.value ? counts?.[o.value as T] : undefined

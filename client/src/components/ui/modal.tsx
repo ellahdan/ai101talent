@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useT } from '@/i18n'
+import { common } from '@/i18n/common'
 
 interface ModalProps {
   open: boolean
@@ -14,6 +16,7 @@ interface ModalProps {
 
 /** Accessible modal (focus trap, Escape to close, labelled by its title) built on Base UI Dialog. */
 export function Modal({ open, onOpenChange, title, description, children, className }: ModalProps) {
+  const t = useT(common)
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -26,7 +29,7 @@ export function Modal({ open, onOpenChange, title, description, children, classN
         >
           <div className="flex items-start justify-between gap-4">
             <Dialog.Title className="text-xl font-semibold tracking-[-.02em]">{title}</Dialog.Title>
-            <Dialog.Close aria-label="Close" className="grid size-8 shrink-0 place-items-center rounded-md text-foreground/50 hover:bg-muted hover:text-foreground">
+            <Dialog.Close aria-label={t.actions.close} className="grid size-8 shrink-0 place-items-center rounded-md text-foreground/50 hover:bg-muted hover:text-foreground">
               <X size={17} aria-hidden />
             </Dialog.Close>
           </div>

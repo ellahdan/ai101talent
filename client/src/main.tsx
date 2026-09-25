@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LazyMotion, MotionConfig } from 'framer-motion'
 import { Toaster } from 'sonner'
 import { ThemeProvider, useTheme } from '@/hooks/useTheme'
+import { LangProvider } from '@/i18n'
 import { router } from '@/router'
 import './index.css'
 
@@ -16,6 +17,7 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <LangProvider>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         {/* "user" disables transform/layout animations when the OS asks for reduced motion. */}
@@ -28,6 +30,7 @@ createRoot(document.getElementById('root')!).render(
         </MotionConfig>
       </QueryClientProvider>
     </ThemeProvider>
+    </LangProvider>
   </StrictMode>,
 )
 

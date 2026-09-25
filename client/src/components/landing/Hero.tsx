@@ -7,11 +7,52 @@ import { cn } from '@/lib/utils'
 import { useTypewriter } from '@/hooks/useTypewriter'
 import { usePublicStats } from '@/hooks/usePublicData'
 import { CountUp } from './CountUp'
+import { defineText, useT } from '@/i18n'
 
-const examples = {
-  jobs: ['React developer, 3+ years', 'Data analyst, French', 'Remote product designer', 'Python, machine learning'],
-  talent: ['React developer, 3+ years', 'Data analyst, French', 'DevOps engineer, AWS', 'B2B marketing lead'],
-}
+const text = defineText(
+  {
+    eyebrow: 'The human-first talent marketplace',
+    title1: 'How work',
+    title2: 'gets done.',
+    lead: 'Find the right people for your next project, or find meaningful work that moves your career forward.',
+    findJob: 'Find a Job',
+    hireTalent: 'Hire Talent',
+    searchFor: 'Search for',
+    findWork: 'Find work',
+    findTalent: 'Find talent',
+    searchJobs: 'Search jobs',
+    searchTalent: 'Search talent',
+    jobsPlaceholder: 'Search by role, skill, or keyword',
+    talentPlaceholder: 'Search by skill or job title',
+    search: 'Search',
+    examples: {
+      jobs: ['React developer, 3+ years', 'Data analyst, French', 'Remote product designer', 'Python, machine learning'],
+      talent: ['React developer, 3+ years', 'Data analyst, French', 'DevOps engineer, AWS', 'B2B marketing lead'],
+    },
+    stats: { openPositions: 'Open positions', talents: 'Registered talents', companies: 'Companies', hires: 'Successful hires' },
+  },
+  {
+    eyebrow: 'Der Talentmarktplatz mit dem Menschen im Mittelpunkt',
+    title1: 'So wird Arbeit',
+    title2: 'erledigt.',
+    lead: 'Finden Sie die richtigen Menschen für Ihr nächstes Projekt – oder sinnvolle Arbeit, die Ihre Karriere voranbringt.',
+    findJob: 'Job finden',
+    hireTalent: 'Talente einstellen',
+    searchFor: 'Suchen nach',
+    findWork: 'Jobs finden',
+    findTalent: 'Talente finden',
+    searchJobs: 'Jobs suchen',
+    searchTalent: 'Talente suchen',
+    jobsPlaceholder: 'Nach Position, Fähigkeit oder Stichwort suchen',
+    talentPlaceholder: 'Nach Fähigkeit oder Jobtitel suchen',
+    search: 'Suchen',
+    examples: {
+      jobs: ['React-Entwickler, 3+ Jahre', 'Datenanalyst, Französisch', 'Produktdesigner remote', 'Python, Machine Learning'],
+      talent: ['React-Entwickler, 3+ Jahre', 'Datenanalyst, Französisch', 'DevOps-Engineer, AWS', 'B2B-Marketing-Lead'],
+    },
+    stats: { openPositions: 'Offene Stellen', talents: 'Registrierte Talente', companies: 'Unternehmen', hires: 'Erfolgreiche Einstellungen' },
+  },
+)
 
 export function Hero() {
   const navigate = useNavigate()
@@ -19,13 +60,14 @@ export function Hero() {
   const [mode, setMode] = useState<'jobs' | 'talent'>('jobs')
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
-  const staticPlaceholder = mode === 'jobs' ? 'Search by role, skill, or keyword' : 'Search by skill or job title'
+  const t = useT(text)
+  const staticPlaceholder = mode === 'jobs' ? t.jobsPlaceholder : t.talentPlaceholder
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
     const q = query.trim()
     const params = q ? `?q=${encodeURIComponent(q)}` : ''
-    navigate(mode === 'jobs' ? `/jobs${params}` : `/company/search${params}`)
+    navigate(mode === 'jobs' ? `/jobs${params}` : `/talent${params}`)
   }
 
   return (
@@ -33,21 +75,21 @@ export function Hero() {
       <HeroBackground />
       <div className="mx-auto max-w-7xl">
         <div className="max-w-3xl">
-          <p className="mb-5 text-sm font-medium text-brand-bright">The human-first talent marketplace</p>
-          <h1 className="max-w-2xl text-[clamp(2.7rem,10vw,6.4rem)] font-medium leading-[.96] tracking-[-.07em]">How work<br /><span className="text-brand-bright">gets done.</span></h1>
-          <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-xl">Find the right people for your next project, or find meaningful work that moves your career forward.</p>
+          <p className="mb-5 text-sm font-medium text-brand-bright">{t.eyebrow}</p>
+          <h1 className="max-w-2xl text-[clamp(2.7rem,10vw,6.4rem)] font-medium leading-[.96] tracking-[-.07em]">{t.title1}<br /><span className="text-brand-bright">{t.title2}</span></h1>
+          <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-xl">{t.lead}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/jobs" className={cn(buttonVariants({ size: 'lg' }), 'h-11 rounded-md bg-brand px-5 text-brand-foreground hover:bg-brand-hover')}>
-              Find a Job <ArrowRight data-icon="inline-end" />
+              {t.findJob} <ArrowRight data-icon="inline-end" />
             </Link>
-            <Link to="/register?role=company" className={cn(buttonVariants({ size: 'lg', variant: 'outline' }), 'h-11 rounded-md border-white/25 bg-white/5 px-5 text-white hover:bg-white/15 hover:text-white dark:border-white/25 dark:bg-white/5 dark:hover:bg-white/15')}>
-              Hire Talent
+            <Link to="/talent" className={cn(buttonVariants({ size: 'lg', variant: 'outline' }), 'h-11 rounded-md border-white/25 bg-white/5 px-5 text-white hover:bg-white/15 hover:text-white dark:border-white/25 dark:bg-white/5 dark:hover:bg-white/15')}>
+              {t.hireTalent}
             </Link>
           </div>
         </div>
 
         <form onSubmit={onSubmit} role="search" className="mt-9 max-w-3xl rounded-lg bg-surface p-2 text-foreground shadow-2xl sm:mt-12">
-          <div className="flex border-b border-foreground/10" role="tablist" aria-label="Search for">
+          <div className="flex border-b border-foreground/10" role="tablist" aria-label={t.searchFor}>
             {(['jobs', 'talent'] as const).map((m) => (
               <button
                 key={m}
@@ -57,7 +99,7 @@ export function Hero() {
                 onClick={() => setMode(m)}
                 className={`flex-1 px-3 py-3 text-left text-sm font-semibold ${mode === m ? 'border-b-2 border-brand text-brand dark:text-brand-bright' : 'text-foreground/55'}`}
               >
-                {m === 'jobs' ? 'Find work' : 'Find talent'}
+                {m === 'jobs' ? t.findWork : t.findTalent}
               </button>
             ))}
           </div>
@@ -65,7 +107,7 @@ export function Hero() {
             <Search className="shrink-0 text-brand" size={20} aria-hidden />
             <div className="relative min-w-0 flex-1">
               <input
-                aria-label={mode === 'jobs' ? 'Search jobs' : 'Search talent'}
+                aria-label={mode === 'jobs' ? t.searchJobs : t.searchTalent}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => setFocused(true)}
@@ -73,10 +115,10 @@ export function Hero() {
                 placeholder={reduceMotion || focused ? staticPlaceholder : ''}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-foreground/45 sm:text-base"
               />
-              {!reduceMotion && !focused && query === '' && <TypedExamples phrases={examples[mode]} />}
+              {!reduceMotion && !focused && query === '' && <TypedExamples key={t.examples[mode][0]} phrases={t.examples[mode]} />}
             </div>
-            <Button type="submit" className="rounded-md bg-brand text-brand-foreground hover:bg-brand-hover" aria-label="Search">
-              <span className="hidden sm:inline">Search</span>
+            <Button type="submit" className="rounded-md bg-brand text-brand-foreground hover:bg-brand-hover" aria-label={t.search}>
+              <span className="hidden sm:inline">{t.search}</span>
               <ArrowRight className="sm:hidden" aria-hidden />
             </Button>
           </div>
@@ -90,11 +132,12 @@ export function Hero() {
 
 function HeroStats() {
   const { data, isLoading } = usePublicStats()
+  const t = useT(text).stats
   const items = [
-    { label: 'Open positions', value: data?.openPositions },
-    { label: 'Registered talents', value: data?.registeredTalents },
-    { label: 'Companies', value: data?.companies },
-    { label: 'Successful hires', value: data?.successfulHires },
+    { label: t.openPositions, value: data?.openPositions },
+    { label: t.talents, value: data?.registeredTalents },
+    { label: t.companies, value: data?.companies },
+    { label: t.hires, value: data?.successfulHires },
   ]
   return (
     <dl className="mt-12 grid max-w-4xl grid-cols-2 gap-x-6 gap-y-8 border-t border-white/10 pt-8 sm:mt-16 sm:grid-cols-4" aria-busy={isLoading}>

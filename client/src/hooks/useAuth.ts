@@ -28,6 +28,8 @@ function useSessionMutation<TInput>(path: string) {
     mutationFn: (input: TInput) => api<AuthUser>(path, { method: 'POST', body: JSON.stringify(input) }),
     onSuccess: (user) => {
       queryClient.setQueryData(meQueryKey, user)
+      // Talent results fetched as a guest lack this account's shortlists and request statuses.
+      queryClient.removeQueries({ queryKey: ['talent'] })
     },
   })
 }

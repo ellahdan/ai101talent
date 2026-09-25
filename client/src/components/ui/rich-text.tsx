@@ -3,6 +3,8 @@ import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Bold, Heading3, Italic, Link2, List, ListOrdered, Redo2, Underline, Undo2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useT } from '@/i18n'
+import { common } from '@/i18n/common'
 
 interface RichTextProps {
   value: string
@@ -15,6 +17,7 @@ interface RichTextProps {
 
 /** Minimal rich-text editor (headings, bold/italic/underline, lists, links). Output is sanitized on the server. */
 export function RichTextEditor({ value, onChange, id, placeholder, ...aria }: RichTextProps) {
+  const c = useT(common)
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -67,7 +70,7 @@ export function RichTextEditor({ value, onChange, id, placeholder, ...aria }: Ri
 
   const setLink = () => {
     const previous = editor.getAttributes('link').href as string | undefined
-    const url = window.prompt('Link address (leave empty to remove the link)', previous ?? 'https://')
+    const url = window.prompt(c.editor.linkPrompt, previous ?? 'https://')
     if (url === null) return
     if (url.trim() === '' || url === 'https://') editor.chain().focus().extendMarkRange('link').unsetLink().run()
     else editor.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run()
@@ -80,18 +83,18 @@ export function RichTextEditor({ value, onChange, id, placeholder, ...aria }: Ri
         aria['aria-invalid'] ? 'border-destructive' : 'border-foreground/15',
       )}
     >
-      <div role="toolbar" aria-label="Formatting" className="flex flex-wrap gap-0.5 border-b border-foreground/10 bg-chip/60 p-1.5">
-        <Tool label="Bold" active={state.bold} onClick={() => editor.chain().focus().toggleBold().run()}><Bold size={16} /></Tool>
-        <Tool label="Italic" active={state.italic} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic size={16} /></Tool>
-        <Tool label="Underline" active={state.underline} onClick={() => editor.chain().focus().toggleUnderline().run()}><Underline size={16} /></Tool>
+      <div role="toolbar" aria-label={c.editor.formatting} className="flex flex-wrap gap-0.5 border-b border-foreground/10 bg-chip/60 p-1.5">
+        <Tool label={c.editor.bold} active={state.bold} onClick={() => editor.chain().focus().toggleBold().run()}><Bold size={16} /></Tool>
+        <Tool label={c.editor.italic} active={state.italic} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic size={16} /></Tool>
+        <Tool label={c.editor.underline} active={state.underline} onClick={() => editor.chain().focus().toggleUnderline().run()}><Underline size={16} /></Tool>
         <Sep />
-        <Tool label="Heading" active={state.h3} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}><Heading3 size={16} /></Tool>
-        <Tool label="Bulleted list" active={state.bullet} onClick={() => editor.chain().focus().toggleBulletList().run()}><List size={16} /></Tool>
-        <Tool label="Numbered list" active={state.ordered} onClick={() => editor.chain().focus().toggleOrderedList().run()}><ListOrdered size={16} /></Tool>
-        <Tool label="Link" active={state.link} onClick={setLink}><Link2 size={16} /></Tool>
+        <Tool label={c.editor.heading} active={state.h3} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}><Heading3 size={16} /></Tool>
+        <Tool label={c.editor.bulleted} active={state.bullet} onClick={() => editor.chain().focus().toggleBulletList().run()}><List size={16} /></Tool>
+        <Tool label={c.editor.numbered} active={state.ordered} onClick={() => editor.chain().focus().toggleOrderedList().run()}><ListOrdered size={16} /></Tool>
+        <Tool label={c.editor.link} active={state.link} onClick={setLink}><Link2 size={16} /></Tool>
         <Sep />
-        <Tool label="Undo" disabled={!state.canUndo} onClick={() => editor.chain().focus().undo().run()}><Undo2 size={16} /></Tool>
-        <Tool label="Redo" disabled={!state.canRedo} onClick={() => editor.chain().focus().redo().run()}><Redo2 size={16} /></Tool>
+        <Tool label={c.editor.undo} disabled={!state.canUndo} onClick={() => editor.chain().focus().undo().run()}><Undo2 size={16} /></Tool>
+        <Tool label={c.editor.redo} disabled={!state.canRedo} onClick={() => editor.chain().focus().redo().run()}><Redo2 size={16} /></Tool>
       </div>
       <div className="relative">
         {state.empty && placeholder && <p aria-hidden className="pointer-events-none absolute top-3 left-4 text-sm text-foreground/40">{placeholder}</p>}

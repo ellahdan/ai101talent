@@ -7,12 +7,9 @@ import { cn } from '@/lib/utils'
 import { dashboardPath, useLogout, useMe } from '@/hooks/useAuth'
 import { Logo } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
-
-const links = [
-  { to: '/jobs', label: 'Find work' },
-  { to: '/#how', label: 'How it works' },
-  { to: '/#why', label: 'Why AI101' },
-]
+import { LanguageToggle } from './LanguageToggle'
+import { useT } from '@/i18n'
+import { common } from '@/i18n/common'
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -20,6 +17,13 @@ export function Navbar() {
   const { data: me } = useMe()
   const logout = useLogout()
   const navigate = useNavigate()
+  const t = useT(common).nav
+  const links = [
+    { to: '/jobs', label: t.findWork },
+    { to: '/talent', label: t.findTalent },
+    { to: '/#how', label: t.howItWorks },
+    { to: '/#why', label: t.why },
+  ]
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -43,33 +47,35 @@ export function Navbar() {
     >
       <div className={cn('mx-auto flex max-w-7xl items-center justify-between px-4 transition-[height] duration-300 sm:px-8', scrolled ? 'h-14' : 'h-16')}>
         <Logo />
-        <nav aria-label="Main" className="hidden items-center gap-7 text-sm md:flex">
+        <nav aria-label={t.main} className="hidden items-center gap-7 text-sm md:flex">
           {links.map((link) => <Link key={link.to} to={link.to} className="hover:text-brand">{link.label}</Link>)}
         </nav>
         <div className="hidden items-center gap-2 md:flex">
+          <LanguageToggle />
           <ThemeToggle />
           {me ? (
             <>
               <button type="button" onClick={onLogout} className={cn(buttonVariants({ variant: 'ghost' }), 'rounded-md')}>
-                <LogOut data-icon="inline-start" aria-hidden /> Log out
+                <LogOut data-icon="inline-start" aria-hidden /> {t.logOut}
               </button>
               <Link to={dashboardPath(me.role)} className={cn(buttonVariants(), 'rounded-md bg-brand text-brand-foreground hover:bg-brand-hover')}>
-                <LayoutDashboard data-icon="inline-start" aria-hidden /> Dashboard
+                <LayoutDashboard data-icon="inline-start" aria-hidden /> {t.dashboard}
               </Link>
             </>
           ) : (
             <>
-              <Link to="/login" className={cn(buttonVariants({ variant: 'ghost' }), 'rounded-md')}>Log in</Link>
-              <Link to="/register" className={cn(buttonVariants(), 'rounded-md bg-brand text-brand-foreground hover:bg-brand-hover')}>Sign up</Link>
+              <Link to="/login" className={cn(buttonVariants({ variant: 'ghost' }), 'rounded-md')}>{t.logIn}</Link>
+              <Link to="/register" className={cn(buttonVariants(), 'rounded-md bg-brand text-brand-foreground hover:bg-brand-hover')}>{t.signUp}</Link>
             </>
           )}
         </div>
         <div className="flex items-center gap-1 md:hidden">
+          <LanguageToggle />
           <ThemeToggle />
           <button
             type="button"
             className="grid size-9 place-items-center"
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-label={mobileOpen ? t.closeMenu : t.openMenu}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -92,13 +98,13 @@ export function Navbar() {
               {links.map((link) => <Link key={link.to} to={link.to} onClick={close}>{link.label}</Link>)}
               {me ? (
                 <>
-                  <button type="button" onClick={onLogout} className="text-left">Log out</button>
-                  <Link to={dashboardPath(me.role)} onClick={close} className={cn(buttonVariants(), 'w-full rounded-md bg-brand text-brand-foreground')}>Dashboard</Link>
+                  <button type="button" onClick={onLogout} className="text-left">{t.logOut}</button>
+                  <Link to={dashboardPath(me.role)} onClick={close} className={cn(buttonVariants(), 'w-full rounded-md bg-brand text-brand-foreground')}>{t.dashboard}</Link>
                 </>
               ) : (
                 <>
-                  <Link to="/login" onClick={close}>Log in</Link>
-                  <Link to="/register" onClick={close} className={cn(buttonVariants(), 'w-full rounded-md bg-brand text-brand-foreground')}>Sign up</Link>
+                  <Link to="/login" onClick={close}>{t.logIn}</Link>
+                  <Link to="/register" onClick={close} className={cn(buttonVariants(), 'w-full rounded-md bg-brand text-brand-foreground')}>{t.signUp}</Link>
                 </>
               )}
             </div>

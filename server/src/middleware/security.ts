@@ -1,5 +1,5 @@
 import type { RequestHandler } from 'express'
-import { rateLimit, type Options } from 'express-rate-limit'
+import { ipKeyGenerator, rateLimit, type Options } from 'express-rate-limit'
 
 // ---- Rate limiting --------------------------------------------------------------
 
@@ -36,8 +36,18 @@ const perAccount = (windowMs: number, limit: number, message: string) =>
     },
   })
 
-/** Talent search: generous for normal browsing, blocks scraping. */
-export const searchLimiter = perAccount(15 * 60_000, 150, 'You are searching very quickly. Please wait a few minutes and try again.')
+/** Talent search: generous for normal browsing, blocks scraping. Guests are limited per IP, more tightly. */
+export const searchLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  limit: (req) => (req.user ? 150 : 90),
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  keyGenerator: (req) => (req.user ? `user:${req.user.id}` : `ip:${ipKeyGenerator(req.ip ?? '')}`),
+  handler: (_req, res) => {
+    res.status(429).json({ error: { message: 'You are searching very quickly. Please wait a few minutes and try again.', code: 'RATE_LIMITED' } })
+  },
+})
+
 /** Contact requests: each one is reviewed by a person. */
 export const contactRequestLimiter = perAccount(24 * 60 * 60_000, 20, 'You have reached the limit of 20 contact requests per day. Please try again tomorrow.')
 

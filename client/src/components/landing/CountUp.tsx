@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { animate, useInView, useReducedMotion } from 'framer-motion'
-
-const format = new Intl.NumberFormat('en')
+import { getLocale, useLang } from '@/i18n'
 
 /**
  * Counts from 0 to `value` the first time it scrolls into view. Frames write straight to the DOM
@@ -12,6 +11,8 @@ export function CountUp({ value }: { value: number }) {
   const numberRef = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, margin: '0px 0px -40px 0px' })
   const reduceMotion = useReducedMotion()
+  const { lang } = useLang()
+  const format = new Intl.NumberFormat(getLocale())
 
   useEffect(() => {
     const el = numberRef.current
@@ -22,7 +23,7 @@ export function CountUp({ value }: { value: number }) {
     }
     const controls = animate(0, value, { duration: 1.6, ease: [0.16, 1, 0.3, 1], onUpdate: (v) => { el.textContent = format.format(Math.round(v)) } })
     return () => controls.stop()
-  }, [inView, value, reduceMotion])
+  }, [inView, value, reduceMotion, lang])
 
   return (
     <span ref={ref}>

@@ -3,4 +3,5 @@ Allow: /
 Disallow: /admin
 Disallow: /company
 Disallow: /candidate
+Disallow: /talent
 Disallow: /api/

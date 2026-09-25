@@ -1,6 +1,8 @@
 import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 import { AlertCircle, CheckCircle2, Eye, EyeOff, Info, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { translateMessage, useT } from '@/i18n'
+import { common } from '@/i18n/common'
 
 const controlClass =
   'w-full rounded-md border border-foreground/15 bg-surface px-3 text-sm text-foreground outline-none transition placeholder:text-foreground/40 focus-visible:border-brand focus-visible:ring-3 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-60 aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive/25'
@@ -23,13 +25,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 
 export const PasswordInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function PasswordInput({ className, ...props }, ref) {
   const [visible, setVisible] = useState(false)
+  const t = useT(common).form
   return (
     <div className="relative">
       <Input ref={ref} type={visible ? 'text' : 'password'} className={cn('pr-11', className)} {...props} />
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
-        aria-label={visible ? 'Hide password' : 'Show password'}
+        aria-label={visible ? t.hidePassword : t.showPassword}
         className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-md text-foreground/50 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none"
       >
         {visible ? <EyeOff size={17} aria-hidden /> : <Eye size={17} aria-hidden />}
@@ -51,6 +54,7 @@ interface FieldProps {
 /** Label + control + hint + error, with accessible wiring between them. */
 export function Field({ label, error, hint, optional, className, children }: FieldProps) {
   const id = useId()
+  const t = useT(common).form
   const hintId = hint ? `${id}-hint` : undefined
   const errorId = error ? `${id}-error` : undefined
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined
@@ -58,11 +62,11 @@ export function Field({ label, error, hint, optional, className, children }: Fie
     <div className={cn('space-y-1.5', className)}>
       <label htmlFor={id} className="flex items-baseline justify-between text-sm font-semibold">
         {label}
-        {optional && <span className="text-xs font-normal text-foreground/50">Optional</span>}
+        {optional && <span className="text-xs font-normal text-foreground/50">{t.optional}</span>}
       </label>
       {children({ id, 'aria-describedby': describedBy, 'aria-invalid': error ? true : undefined })}
       {hint && !error && <p id={hintId} className="text-xs text-foreground/55">{hint}</p>}
-      {error && <p id={errorId} className="flex items-center gap-1 text-xs font-medium text-destructive"><AlertCircle size={13} aria-hidden />{error}</p>}
+      {error && <p id={errorId} className="flex items-center gap-1 text-xs font-medium text-destructive"><AlertCircle size={13} aria-hidden />{translateMessage(error)}</p>}
     </div>
   )
 }

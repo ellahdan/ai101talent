@@ -8,6 +8,8 @@ import { useMe } from '@/hooks/useAuth'
 import { useMyJob, useSaveJob } from '@/hooks/useCompany'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ApprovalNotice } from './CompanyLayout'
+import { useT } from '@/i18n'
+import { companyText } from '@/i18n/company'
 
 export default function JobEditor() {
   const { id } = useParams()
@@ -15,13 +17,14 @@ export default function JobEditor() {
   const { data: me } = useMe()
   const existing = useMyJob(id)
   const save = useSaveJob(id)
-  useDocumentTitle(id ? 'Edit position' : 'Post a position')
+  const t = useT(companyText).editor
+  useDocumentTitle(id ? t.edit : t.post)
 
   const canPost = me?.company?.status === 'approved' && me.isVerified
   if (!canPost) {
     return (
       <>
-        <PageHeader title={id ? 'Edit position' : 'Post a position'} />
+        <PageHeader title={id ? t.edit : t.post} />
         <ApprovalNotice />
       </>
     )
@@ -34,18 +37,18 @@ export default function JobEditor() {
 
   return (
     <>
-      <Link to="/company/jobs" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-brand"><ArrowLeft size={15} aria-hidden /> Positions</Link>
-      <PageHeader title={id ? 'Edit position' : 'Post a position'} description="Our team reviews every position before it's published, so candidates always see accurate listings." />
-      {wasOpen && <Alert variant="info" className="mb-6">This position is live. Saving changes sends it back to review, and it's hidden from the job board until approved again.</Alert>}
+      <Link to="/company/jobs" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-brand"><ArrowLeft size={15} aria-hidden /> {t.back}</Link>
+      <PageHeader title={id ? t.edit : t.post} description={t.description} />
+      {wasOpen && <Alert variant="info" className="mb-6">{t.live}</Alert>}
       <JobForm
         defaultValues={existing.data ? jobToForm(existing.data) : emptyJob}
         submitting={save.isPending}
         error={save.error?.message}
-        submitLabel={id ? 'Save and submit for review' : 'Submit for review'}
+        submitLabel={id ? t.saveSubmit : t.submit}
         onSubmit={({ companyId: _c, featured: _f, ...values }) =>
           save.mutate(values, {
             onSuccess: () => {
-              toast.success('Submitted. Our team will review it and email you.')
+              toast.success(t.submitted)
               navigate('/company/jobs')
             },
           })

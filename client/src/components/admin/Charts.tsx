@@ -1,12 +1,15 @@
 import { useId, useState, type ReactNode } from 'react'
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipContentProps } from 'recharts'
 import { BarChart3, Table2 } from 'lucide-react'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/i18n'
+import { adminText } from '@/i18n/admin'
 
 // Single-series charts in the brand hue (validated on both surfaces). Marks follow the house spec:
 // bars <= 24px thick with a 4px rounded data end, 1px solid recessive grid, text in text tokens.
 
 const AXIS_TICK = { fill: 'var(--muted-foreground)', fontSize: 12 }
-const format = new Intl.NumberFormat('en')
+const format = { format: formatNumber }
 
 export interface Datum {
   label: string
@@ -17,6 +20,7 @@ export interface Datum {
 export function ChartCard({ title, subtitle, data, valueLabel, children }: { title: string; subtitle?: string; data: Datum[]; valueLabel: string; children: ReactNode }) {
   const [asTable, setAsTable] = useState(false)
   const headingId = useId()
+  const t = useT(adminText).charts
   return (
     <section aria-labelledby={headingId} className="rounded-lg border border-foreground/12 bg-surface p-5">
       <div className="mb-4 flex items-start justify-between gap-3">
@@ -30,14 +34,14 @@ export function ChartCard({ title, subtitle, data, valueLabel, children }: { tit
           aria-pressed={asTable}
           className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold text-foreground/60 hover:bg-muted hover:text-foreground"
         >
-          {asTable ? <BarChart3 size={14} aria-hidden /> : <Table2 size={14} aria-hidden />} {asTable ? 'Chart' : 'Table'}
+          {asTable ? <BarChart3 size={14} aria-hidden /> : <Table2 size={14} aria-hidden />} {asTable ? t.chart : t.table}
         </button>
       </div>
       {asTable ? (
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-foreground/10 text-left text-xs text-foreground/55">
-              <th scope="col" className="py-2 font-semibold">Item</th>
+              <th scope="col" className="py-2 font-semibold">{t.item}</th>
               <th scope="col" className="py-2 text-right font-semibold">{valueLabel}</th>
             </tr>
           </thead>

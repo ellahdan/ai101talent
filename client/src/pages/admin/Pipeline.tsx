@@ -13,9 +13,14 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { APPLICATION_STATUSES, type ApplicationStatus, type PipelineCard } from '@/types'
+import { useT } from '@/i18n'
+import { common } from '@/i18n/common'
+import { adminText } from '@/i18n/admin'
 
 export default function AdminPipeline() {
-  useDocumentTitle('Applications pipeline')
+  const t = useT(adminText).pipeline
+  const labels = useT(common)
+  useDocumentTitle(t.title)
   const [params, setParams] = useSearchParams()
   const jobs = useAdminJobs()
   // Default to the position with the most applications.
@@ -24,14 +29,14 @@ export default function AdminPipeline() {
 
   return (
     <>
-      <PageHeader title="Applications pipeline" description="Drag cards between stages, or use the menu on each card. Candidates see their updated status on their dashboard." />
+      <PageHeader title={t.title} description={t.description} />
       <div className="mb-5 max-w-xl">
-        <label htmlFor="pipeline-job" className="mb-1.5 block text-sm font-semibold">Position</label>
+        <label htmlFor="pipeline-job" className="mb-1.5 block text-sm font-semibold">{t.position}</label>
         <Select id="pipeline-job" value={jobId ?? ''} onChange={(e) => setParams({ job: e.target.value }, { replace: true })} disabled={jobs.isPending}>
-          {jobs.data?.map((j) => <option key={j.id} value={j.id}>{j.title} · {j.company.name} ({j.applicationCount}){j.status !== 'open' ? ` · ${j.status}` : ''}</option>)}
+          {jobs.data?.map((j) => <option key={j.id} value={j.id}>{j.title} · {j.company.name} ({j.applicationCount}){j.status !== 'open' ? ` · ${labels.status[j.status]}` : ''}</option>)}
         </Select>
       </div>
-      {jobs.isPending ? <Spinner className="size-6 text-foreground/50" /> : jobId ? <Board key={jobId} jobId={jobId} /> : <EmptyState icon={KanbanSquare} title="No positions yet" />}
+      {jobs.isPending ? <Spinner className="size-6 text-foreground/50" /> : jobId ? <Board key={jobId} jobId={jobId} /> : <EmptyState icon={KanbanSquare} title={t.noJobs} />}
     </>
   )
 }
@@ -41,14 +46,15 @@ function Board({ jobId }: { jobId: string }) {
   const move = useMoveApplication(jobId)
   const [dragging, setDragging] = useState<PipelineCard | null>(null)
   const [letter, setLetter] = useState<PipelineCard | null>(null)
+  const t = useT(adminText).pipeline
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor))
 
   if (isPending) return <Spinner className="size-6 text-foreground/50" />
   if (error) return <Alert variant="error">{error.message}</Alert>
 
   const byId = new Map(data.applications.map((a) => [a.id, a]))
-  const name = (id: string | number) => byId.get(String(id))?.candidate.fullName ?? 'Application'
-  const column = (id?: string | number) => (id ? statusLabel(String(id) as ApplicationStatus) : 'no column')
+  const name = (id: string | number) => byId.get(String(id))?.candidate.fullName ?? t.application
+  const column = (id?: string | number) => (id ? statusLabel(String(id) as ApplicationStatus) : t.noColumn)
 
   const moveTo = (card: PipelineCard, status: ApplicationStatus) => {
     if (card.status === status) return
@@ -62,13 +68,13 @@ function Board({ jobId }: { jobId: string }) {
 
   // Screen reader announcements with names and stage labels instead of raw ids.
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `Picked up ${name(active.id)}.`,
-    onDragOver: ({ active, over }) => `${name(active.id)} is over ${column(over?.id)}.`,
-    onDragEnd: ({ active, over }) => (over ? `${name(active.id)} moved to ${column(over.id)}.` : `${name(active.id)} was dropped.`),
-    onDragCancel: ({ active }) => `Moving ${name(active.id)} was cancelled.`,
+    onDragStart: ({ active }) => t.pickedUp(name(active.id)),
+    onDragOver: ({ active, over }) => t.over(name(active.id), column(over?.id)),
+    onDragEnd: ({ active, over }) => (over ? t.moved(name(active.id), column(over.id)) : t.dropped(name(active.id))),
+    onDragCancel: ({ active }) => t.cancelled(name(active.id)),
   }
 
-  if (data.applications.length === 0) return <EmptyState icon={KanbanSquare} title="No applications for this position yet" />
+  if (data.applications.length === 0) return <EmptyState icon={KanbanSquare} title={t.noApplications} />
 
   return (
     <DndContext sensors={sensors} accessibility={{ announcements }} onDragStart={({ active }) => setDragging(byId.get(String(active.id)) ?? null)} onDragEnd={onDragEnd} onDragCancel={() => setDragging(null)}>
@@ -82,11 +88,11 @@ function Board({ jobId }: { jobId: string }) {
       <DragOverlay>{dragging ? <CardBody card={dragging} overlay /> : null}</DragOverlay>
 
       {letter && (
-        <Modal open onOpenChange={(o) => !o && setLetter(null)} title={`Cover letter: ${letter.candidate.fullName}`} className="max-w-lg">
+        <Modal open onOpenChange={(o) => !o && setLetter(null)} title={t.letterTitle(letter.candidate.fullName)} className="max-w-lg">
           {letter.coverLetter?.text && <p className="max-h-80 overflow-y-auto text-sm leading-relaxed whitespace-pre-line">{letter.coverLetter.text}</p>}
           {letter.coverLetter?.hasFile && (
             <button type="button" onClick={() => openApplicationLetter(letter.id).catch((e) => toast.error(e.message))} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand">
-              <FileText size={15} aria-hidden /> Open the uploaded file (logged)
+              <FileText size={15} aria-hidden /> {t.openFile}
             </button>
           )}
         </Modal>
@@ -119,10 +125,12 @@ function DraggableCard({ card, onMove, onLetter }: { card: PipelineCard; onMove:
 }
 
 function CardBody({ card, handle, overlay, onMove, onLetter }: { card: PipelineCard; handle?: Record<string, unknown>; overlay?: boolean; onMove?: (c: PipelineCard, s: ApplicationStatus) => void; onLetter?: (c: PipelineCard) => void }) {
+  const t = useT(adminText).pipeline
+  const labels = useT(common)
   return (
     <div className={cn('rounded-md border border-foreground/12 bg-surface p-3 text-sm', overlay && 'rotate-2 shadow-xl')}>
       <div className="flex items-start gap-1.5">
-        <button type="button" aria-label={`Drag ${card.candidate.fullName}`} className="-ml-1 grid h-6 w-5 shrink-0 cursor-grab touch-none place-items-center rounded text-foreground/40 hover:bg-muted active:cursor-grabbing" {...handle}>
+        <button type="button" aria-label={t.drag(card.candidate.fullName)} className="-ml-1 grid h-6 w-5 shrink-0 cursor-grab touch-none place-items-center rounded text-foreground/40 hover:bg-muted active:cursor-grabbing" {...handle}>
           <GripVertical size={14} aria-hidden />
         </button>
         <div className="min-w-0 flex-1">
@@ -130,19 +138,19 @@ function CardBody({ card, handle, overlay, onMove, onLetter }: { card: PipelineC
           <p className="font-mono text-[11px] text-foreground/50">{card.candidate.applicantNumber}</p>
         </div>
       </div>
-      <p className="mt-1.5 line-clamp-2 text-xs text-foreground/65">{card.candidate.headline} · {card.candidate.totalYearsExperience}y</p>
+      <p className="mt-1.5 line-clamp-2 text-xs text-foreground/65">{card.candidate.headline} · {labels.yearsShort(card.candidate.totalYearsExperience)}</p>
       <p className="mt-1 truncate text-xs text-foreground/50">{card.candidate.topSkills.join(', ')}</p>
       <div className="mt-2 flex items-center justify-between gap-2">
         <span className="text-[11px] text-foreground/45">{timeAgo(card.updatedAt)}</span>
         {card.coverLetter && onLetter && (
-          <button type="button" onClick={() => onLetter(card)} aria-label={`Cover letter from ${card.candidate.fullName}`} className="grid size-6 place-items-center rounded text-foreground/50 hover:bg-muted hover:text-brand">
+          <button type="button" onClick={() => onLetter(card)} aria-label={t.letterFrom(card.candidate.fullName)} className="grid size-6 place-items-center rounded text-foreground/50 hover:bg-muted hover:text-brand">
             <FileText size={13} aria-hidden />
           </button>
         )}
       </div>
       {onMove && (
         <select
-          aria-label={`Move ${card.candidate.fullName} to stage`}
+          aria-label={t.moveTo(card.candidate.fullName)}
           value={card.status}
           onChange={(e) => onMove(card, e.target.value as ApplicationStatus)}
           className="mt-2 h-7 w-full rounded border border-foreground/12 bg-surface px-1.5 text-xs"

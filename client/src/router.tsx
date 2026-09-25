@@ -11,6 +11,8 @@ const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'))
 const Jobs = lazy(() => import('@/pages/jobs/Jobs'))
 const JobDetail = lazy(() => import('@/pages/jobs/JobDetail'))
 const Apply = lazy(() => import('@/pages/apply/Apply'))
+const Talent = lazy(() => import('@/pages/talent/Talent'))
+const TalentProfile = lazy(() => import('@/pages/talent/TalentProfile'))
 const Privacy = lazy(() => import('@/pages/Privacy'))
 const Terms = lazy(() => import('@/pages/Terms'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
@@ -74,6 +76,8 @@ export const router = createBrowserRouter([
           { path: 'jobs', element: page(<Jobs />) },
           { path: 'jobs/:id', element: page(<JobDetail />) },
           { path: 'apply', element: page(<Apply />) },
+          { path: 'talent', element: page(<Talent />) },
+          { path: 'talent/:id', element: page(<TalentProfile />) },
           { path: 'login', element: page(<Login />) },
           { path: 'register', element: page(<Register />) },
           { path: 'verify-email', element: page(<VerifyEmail />) },

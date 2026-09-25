@@ -2,14 +2,18 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, BriefcaseBusiness } from 'lucide-react'
 import { formatSalary, isRecent, jobMeta } from '@/lib/format'
 import type { JobSummary } from '@/types'
+import { defineText, useT } from '@/i18n'
+
+const text = defineText({ new: 'New', featured: 'Featured', view: 'View opportunity' }, { new: 'Neu', featured: 'Empfohlen', view: 'Stelle ansehen' })
 
 export function JobCard({ job, href = `/jobs/${job.id}` }: { job: JobSummary; href?: string }) {
+  const t = useT(text)
   return (
     <article className="relative flex h-full flex-col rounded-lg border border-foreground/12 bg-surface p-5 transition hover:-translate-y-1 hover:border-brand/60 hover:shadow-lg focus-within:border-brand/60">
       <div className="flex items-start justify-between gap-4">
         <div className="grid size-11 shrink-0 place-items-center rounded-md bg-brand-soft text-brand"><BriefcaseBusiness size={20} aria-hidden /></div>
         {(isRecent(job.createdAt) || job.featured) && (
-          <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-soft-foreground">{isRecent(job.createdAt) ? 'New' : 'Featured'}</span>
+          <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-soft-foreground">{isRecent(job.createdAt) ? t.new : t.featured}</span>
         )}
       </div>
       <h3 className="mt-7 text-lg font-semibold">
@@ -24,7 +28,7 @@ export function JobCard({ job, href = `/jobs/${job.id}` }: { job: JobSummary; hr
       </div>
       {/* Pushes the footer to the bottom so cards in a row line up. */}
       <div className="flex-1" />
-      <span aria-hidden className="mt-6 flex w-full items-center justify-between border-t border-foreground/10 pt-4 text-sm font-semibold text-brand">View opportunity <ArrowRight size={16} /></span>
+      <span aria-hidden className="mt-6 flex w-full items-center justify-between border-t border-foreground/10 pt-4 text-sm font-semibold text-brand">{t.view} <ArrowRight size={16} /></span>
     </article>
   )
 }

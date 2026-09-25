@@ -12,6 +12,9 @@ import { companyDetailsSchema, emailSchema, passwordSchema } from '@/lib/validat
 import { cn } from '@/lib/utils'
 import { COMPANY_SIZES } from '@/types'
 import { AuthCard, submitClass } from './AuthCard'
+import { useT } from '@/i18n'
+import { common } from '@/i18n/common'
+import { authText } from '@/i18n/auth'
 
 type Role = 'candidate' | 'company'
 
@@ -21,6 +24,7 @@ export default function Register() {
   // Set on submit: registering signs the user in, and the form handles the redirect itself.
   const submitted = useRef(false)
   const role: Role = params.get('role') === 'company' ? 'company' : 'candidate'
+  const t = useT(authText).register
 
   if (me && !submitted.current) return <Navigate to={dashboardPath(me.role)} replace />
 
@@ -30,17 +34,13 @@ export default function Register() {
   return (
     <AuthCard
       wide={role === 'company'}
-      title={role === 'company' ? 'Hire through AI101 Talents' : 'Create your account'}
-      subtitle={
-        role === 'company'
-          ? 'Register your company. Our team reviews every company before it can search candidates or publish jobs.'
-          : 'Create an account, then build your profile or apply to an open position.'
-      }
-      footer={<>Already have an account? <Link to="/login" className="font-semibold text-brand">Log in</Link></>}
+      title={role === 'company' ? t.companyTitle : t.candidateTitle}
+      subtitle={role === 'company' ? t.companySubtitle : t.candidateSubtitle}
+      footer={<>{t.haveAccount} <Link to={`/login${params.get('next') ? `?next=${encodeURIComponent(params.get('next')!)}` : ''}`} className="font-semibold text-brand">{t.logIn}</Link></>}
     >
-      <div role="radiogroup" aria-label="Account type" className="mb-7 grid grid-cols-2 gap-2">
-        <RoleOption active={role === 'candidate'} onSelect={() => setRole('candidate')} icon={<UserRound size={18} aria-hidden />} label="I'm looking for work" />
-        <RoleOption active={role === 'company'} onSelect={() => setRole('company')} icon={<BriefcaseBusiness size={18} aria-hidden />} label="I'm hiring" />
+      <div role="radiogroup" aria-label={t.accountType} className="mb-7 grid grid-cols-2 gap-2">
+        <RoleOption active={role === 'candidate'} onSelect={() => setRole('candidate')} icon={<UserRound size={18} aria-hidden />} label={t.lookingForWork} />
+        <RoleOption active={role === 'company'} onSelect={() => setRole('company')} icon={<BriefcaseBusiness size={18} aria-hidden />} label={t.hiring} />
       </div>
       {role === 'company' ? <CompanyForm onSubmitStart={markSubmitted} /> : <CandidateForm onSubmitStart={markSubmitted} />}
     </AuthCard>
@@ -66,10 +66,11 @@ function RoleOption({ active, onSelect, icon, label }: { active: boolean; onSele
 }
 
 function Consent() {
+  const t = useT(authText).register
   return (
     <p className="text-xs leading-relaxed text-foreground/55">
-      By creating an account you agree to our <Link to="/terms" className="underline underline-offset-2">Terms of use</Link> and{' '}
-      <Link to="/privacy" className="underline underline-offset-2">Privacy policy</Link>.
+      {t.consentPrefix} <Link to="/terms" className="underline underline-offset-2">{t.terms}</Link> {t.and}{' '}
+      <Link to="/privacy" className="underline underline-offset-2">{t.privacy}</Link>.
     </p>
   )
 }
@@ -79,6 +80,7 @@ function Consent() {
 const candidateSchema = z.object({ email: emailSchema, password: passwordSchema })
 
 function CandidateForm({ onSubmitStart }: { onSubmitStart: () => void }) {
+  const t = useT(authText)
   const navigate = useNavigate()
   const registerUser = useRegister()
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof candidateSchema>>({ resolver: zodResolver(candidateSchema) })
@@ -89,7 +91,7 @@ function CandidateForm({ onSubmitStart }: { onSubmitStart: () => void }) {
       { role: 'candidate', ...values },
       {
         onSuccess: () => {
-          toast.success('Account created. Check your inbox to confirm your email.')
+          toast.success(t.register.candidateCreated)
           navigate('/apply', { replace: true })
         },
       },
@@ -99,15 +101,15 @@ function CandidateForm({ onSubmitStart }: { onSubmitStart: () => void }) {
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-5">
       {registerUser.error && <Alert variant="error">{registerUser.error.message}</Alert>}
-      <Field label="Email" error={errors.email?.message}>
+      <Field label={t.email} error={errors.email?.message}>
         {(ids) => <Input {...ids} type="email" autoComplete="email" {...register('email')} />}
       </Field>
-      <Field label="Password" error={errors.password?.message} hint="At least 8 characters, including a letter and a number.">
+      <Field label={t.password} error={errors.password?.message} hint={t.passwordHint}>
         {(ids) => <PasswordInput {...ids} autoComplete="new-password" {...register('password')} />}
       </Field>
       <Consent />
       <Button type="submit" disabled={registerUser.isPending} className={submitClass}>
-        {registerUser.isPending && <Spinner />} Create account
+        {registerUser.isPending && <Spinner />} {t.register.createAccount}
       </Button>
     </form>
   )
@@ -120,6 +122,9 @@ type CompanyInput = z.input<typeof companySchema>
 type CompanyOutput = z.output<typeof companySchema>
 
 function CompanyForm({ onSubmitStart }: { onSubmitStart: () => void }) {
+  const a = useT(authText)
+  const t = a.register
+  const c = useT(common)
   const navigate = useNavigate()
   const registerUser = useRegister()
   const { register, handleSubmit, formState: { errors } } = useForm<CompanyInput, unknown, CompanyOutput>({ resolver: zodResolver(companySchema) })
@@ -131,7 +136,7 @@ function CompanyForm({ onSubmitStart }: { onSubmitStart: () => void }) {
       { role: 'company', ...values },
       {
         onSuccess: () => {
-          toast.success('Company registered. Confirm your email while our team reviews your account.')
+          toast.success(t.companyCreated)
           navigate('/company', { replace: true })
         },
       },
@@ -143,53 +148,53 @@ function CompanyForm({ onSubmitStart }: { onSubmitStart: () => void }) {
       {registerUser.error && <Alert variant="error">{registerUser.error.message}</Alert>}
 
       <fieldset className="space-y-5">
-        <legend className="mb-4 text-xs font-semibold uppercase tracking-[.14em] text-foreground/50">Company</legend>
+        <legend className="mb-4 text-xs font-semibold uppercase tracking-[.14em] text-foreground/50">{t.company}</legend>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Company name" error={e?.name?.message}>
+          <Field label={t.companyName} error={e?.name?.message}>
             {(ids) => <Input {...ids} autoComplete="organization" {...register('company.name')} />}
           </Field>
-          <Field label="Website" optional error={e?.website?.message}>
+          <Field label={t.website} optional error={e?.website?.message}>
             {(ids) => <Input {...ids} type="url" inputMode="url" placeholder="example.com" {...register('company.website')} />}
           </Field>
-          <Field label="Industry" optional error={e?.industry?.message}>
-            {(ids) => <Input {...ids} placeholder="e.g. Fintech" {...register('company.industry')} />}
+          <Field label={t.industry} optional error={e?.industry?.message}>
+            {(ids) => <Input {...ids} placeholder={t.industryPlaceholder} {...register('company.industry')} />}
           </Field>
-          <Field label="Company size" optional error={e?.size?.message}>
+          <Field label={t.size} optional error={e?.size?.message}>
             {(ids) => (
               <Select {...ids} defaultValue="" {...register('company.size', { setValueAs: (v) => v || undefined })}>
-                <option value="">Select size</option>
-                {COMPANY_SIZES.map((s) => <option key={s} value={s}>{s} employees</option>)}
+                <option value="">{t.selectSize}</option>
+                {COMPANY_SIZES.map((s) => <option key={s} value={s}>{c.employees(s)}</option>)}
               </Select>
             )}
           </Field>
         </div>
-        <Field label="About the company" optional error={e?.description?.message}>
-          {(ids) => <Textarea {...ids} rows={3} placeholder="What you do and who you're hiring" {...register('company.description')} />}
+        <Field label={t.about} optional error={e?.description?.message}>
+          {(ids) => <Textarea {...ids} rows={3} placeholder={t.aboutPlaceholder} {...register('company.description')} />}
         </Field>
       </fieldset>
 
       <fieldset className="space-y-5">
-        <legend className="mb-4 text-xs font-semibold uppercase tracking-[.14em] text-foreground/50">Contact person</legend>
+        <legend className="mb-4 text-xs font-semibold uppercase tracking-[.14em] text-foreground/50">{t.contactPerson}</legend>
         <div className="grid gap-5 sm:grid-cols-3">
-          <Field label="Full name" error={e?.contactPerson?.name?.message}>
+          <Field label={t.fullName} error={e?.contactPerson?.name?.message}>
             {(ids) => <Input {...ids} autoComplete="name" {...register('company.contactPerson.name')} />}
           </Field>
-          <Field label="Job title" optional error={e?.contactPerson?.title?.message}>
+          <Field label={t.jobTitle} optional error={e?.contactPerson?.title?.message}>
             {(ids) => <Input {...ids} autoComplete="organization-title" {...register('company.contactPerson.title')} />}
           </Field>
-          <Field label="Phone" optional error={e?.contactPerson?.phone?.message}>
+          <Field label={t.phone} optional error={e?.contactPerson?.phone?.message}>
             {(ids) => <Input {...ids} type="tel" autoComplete="tel" {...register('company.contactPerson.phone')} />}
           </Field>
         </div>
       </fieldset>
 
       <fieldset className="space-y-5">
-        <legend className="mb-4 text-xs font-semibold uppercase tracking-[.14em] text-foreground/50">Login</legend>
+        <legend className="mb-4 text-xs font-semibold uppercase tracking-[.14em] text-foreground/50">{t.loginSection}</legend>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Work email" error={errors.email?.message}>
+          <Field label={a.workEmail} error={errors.email?.message}>
             {(ids) => <Input {...ids} type="email" autoComplete="email" {...register('email')} />}
           </Field>
-          <Field label="Password" error={errors.password?.message} hint="8+ characters, a letter and a number.">
+          <Field label={a.password} error={errors.password?.message} hint={a.passwordHintShort}>
             {(ids) => <PasswordInput {...ids} autoComplete="new-password" {...register('password')} />}
           </Field>
         </div>
@@ -197,7 +202,7 @@ function CompanyForm({ onSubmitStart }: { onSubmitStart: () => void }) {
 
       <Consent />
       <Button type="submit" disabled={registerUser.isPending} className={submitClass}>
-        {registerUser.isPending && <Spinner />} Register company
+        {registerUser.isPending && <Spinner />} {t.registerCompany}
       </Button>
     </form>
   )

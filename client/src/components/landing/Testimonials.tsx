@@ -3,6 +3,28 @@ import { AnimatePresence, m, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Quote } from 'lucide-react'
 import { useTestimonials } from '@/hooks/usePublicData'
 import { Reveal } from '@/components/Reveal'
+import { defineText, useT } from '@/i18n'
+
+const text = defineText(
+  {
+    eyebrow: 'In their words',
+    heading: 'Connections that worked.',
+    previous: 'Previous testimonial',
+    next: 'Next testimonial',
+    region: 'Testimonials',
+    slide: (n: number, total: number) => `${n} of ${total}`,
+    show: (n: number) => `Show testimonial ${n}`,
+  },
+  {
+    eyebrow: 'In ihren Worten',
+    heading: 'Verbindungen, die funktioniert haben.',
+    previous: 'Vorheriges Zitat',
+    next: 'Nächstes Zitat',
+    region: 'Erfahrungsberichte',
+    slide: (n: number, total: number) => `${n} von ${total}`,
+    show: (n: number) => `Zitat ${n} anzeigen`,
+  },
+)
 
 const AUTOPLAY_MS = 7000
 
@@ -10,6 +32,7 @@ export function Testimonials() {
   const { data, isLoading } = useTestimonials()
   const items = data ?? []
   const reduceMotion = useReducedMotion()
+  const t = useT(text)
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const autoplay = !reduceMotion && !paused && items.length > 1
@@ -28,13 +51,13 @@ export function Testimonials() {
       <div className="mx-auto max-w-7xl">
         <Reveal className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[.14em] text-brand">In their words</p>
-            <h2 id="testimonials-heading" className="text-3xl font-medium tracking-[-.05em] sm:text-5xl">Connections that worked.</h2>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[.14em] text-brand">{t.eyebrow}</p>
+            <h2 id="testimonials-heading" className="text-3xl font-medium tracking-[-.05em] sm:text-5xl">{t.heading}</h2>
           </div>
           {items.length > 1 && (
             <div className="flex gap-2">
-              <SlideButton label="Previous testimonial" onClick={() => go(-1)}><ChevronLeft size={18} aria-hidden /></SlideButton>
-              <SlideButton label="Next testimonial" onClick={() => go(1)}><ChevronRight size={18} aria-hidden /></SlideButton>
+              <SlideButton label={t.previous} onClick={() => go(-1)}><ChevronLeft size={18} aria-hidden /></SlideButton>
+              <SlideButton label={t.next} onClick={() => go(1)}><ChevronRight size={18} aria-hidden /></SlideButton>
             </div>
           )}
         </Reveal>
@@ -43,7 +66,7 @@ export function Testimonials() {
           className="mt-8 overflow-hidden rounded-lg border border-foreground/12 bg-surface"
           role="region"
           aria-roledescription="carousel"
-          aria-label="Testimonials"
+          aria-label={t.region}
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onFocus={() => setPaused(true)}
@@ -62,7 +85,7 @@ export function Testimonials() {
                 <m.figure
                   key={current.id}
                   aria-roledescription="slide"
-                  aria-label={`${(index % items.length) + 1} of ${items.length}`}
+                  aria-label={t.slide((index % items.length) + 1, items.length)}
                   initial={{ opacity: 0, x: 24 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -24 }}
@@ -89,11 +112,11 @@ export function Testimonials() {
 
         {items.length > 1 && (
           <div className="mt-4 flex justify-center gap-2">
-            {items.map((t, i) => (
+            {items.map((item, i) => (
               <button
-                key={t.id}
+                key={item.id}
                 type="button"
-                aria-label={`Show testimonial ${i + 1}`}
+                aria-label={t.show(i + 1)}
                 aria-current={i === index % items.length}
                 onClick={() => setIndex(i)}
                 className="grid size-6 place-items-center"

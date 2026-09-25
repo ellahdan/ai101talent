@@ -6,6 +6,9 @@ import { useLogout, useMe } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
+import { LanguageToggle } from './LanguageToggle'
+import { useT } from '@/i18n'
+import { common } from '@/i18n/common'
 
 export interface NavItem {
   to: string
@@ -20,10 +23,11 @@ export function AppShell({ area, nav }: { area: string; nav: NavItem[] }) {
   const { data: me } = useMe()
   const logout = useLogout()
   const navigate = useNavigate()
+  const t = useT(common)
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <a href="#app-main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:shadow-lg">Skip to content</a>
+      <a href="#app-main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:shadow-lg">{t.skipToContent}</a>
       <header className="sticky top-0 z-50 border-b border-foreground/10 bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:px-8">
           <div className="flex items-center gap-3">
@@ -32,18 +36,19 @@ export function AppShell({ area, nav }: { area: string; nav: NavItem[] }) {
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
             <span className="hidden max-w-56 truncate text-sm text-foreground/60 md:inline">{me?.email}</span>
+            <LanguageToggle />
             <ThemeToggle />
             <button
               type="button"
               onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/') })}
               className="inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm hover:bg-muted"
             >
-              <LogOut size={16} aria-hidden /> <span className="hidden sm:inline">Log out</span>
+              <LogOut size={16} aria-hidden /> <span className="hidden sm:inline">{t.nav.logOut}</span>
             </button>
           </div>
         </div>
         {/* Mobile: horizontal tabs */}
-        <nav aria-label={`${area} navigation`} className="border-t border-foreground/10 lg:hidden">
+        <nav aria-label={t.shell.navigation(area)} className="border-t border-foreground/10 lg:hidden">
           <ul className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-3 py-2">
             {nav.map((item) => (
               <li key={item.to} className="shrink-0">
@@ -56,7 +61,7 @@ export function AppShell({ area, nav }: { area: string; nav: NavItem[] }) {
       <VerifyBanner />
 
       <div className="mx-auto grid w-full max-w-7xl flex-1 gap-8 px-4 py-8 sm:px-8 lg:grid-cols-[220px_1fr]">
-        <nav aria-label={`${area} navigation`} className="hidden lg:block">
+        <nav aria-label={t.shell.navigation(area)} className="hidden lg:block">
           <ul className="sticky top-20 space-y-1">
             {nav.map((item) => (
               <li key={item.to}>
@@ -74,6 +79,7 @@ export function AppShell({ area, nav }: { area: string; nav: NavItem[] }) {
 }
 
 function NavItemLink({ item, compact }: { item: NavItem; compact?: boolean }) {
+  const t = useT(common)
   const Icon = item.icon
   return (
     <NavLink
@@ -90,7 +96,7 @@ function NavItemLink({ item, compact }: { item: NavItem; compact?: boolean }) {
       <Icon size={17} aria-hidden />
       <span className="flex-1">{item.label}</span>
       {item.badge ? (
-        <span className="grid min-w-5 place-items-center rounded-full bg-brand px-1.5 text-[11px] font-bold text-brand-foreground" aria-label={`${item.badge} need attention`}>
+        <span className="grid min-w-5 place-items-center rounded-full bg-brand px-1.5 text-[11px] font-bold text-brand-foreground" aria-label={t.shell.needAttention(item.badge)}>
           {item.badge}
         </span>
       ) : null}

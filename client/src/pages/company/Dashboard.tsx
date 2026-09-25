@@ -11,9 +11,12 @@ import { useMyCompany, useMyJobs } from '@/hooks/useCompany'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { useT } from '@/i18n'
+import { companyText } from '@/i18n/company'
 
 export default function CompanyDashboard() {
-  useDocumentTitle('Company dashboard')
+  const t = useT(companyText).dashboard
+  useDocumentTitle(t.title)
   const { data: me } = useMe()
   const company = useMyCompany()
   const jobs = useMyJobs()
@@ -32,26 +35,26 @@ export default function CompanyDashboard() {
     const verified = Boolean(me?.isVerified)
     return (
       <>
-        <PageHeader title={c.name} description="Thanks for registering. Here's what happens next." />
+        <PageHeader title={c.name} description={t.welcome} />
         {c.status === 'suspended' ? (
           <Alert variant="error">
-            Your company account is suspended{c.statusNote ? `: ${c.statusNote}` : '.'} Posting positions and searching talent are unavailable. Contact us if you have questions.
+            {t.suspended(c.statusNote)}
           </Alert>
         ) : (
           <ol className="grid gap-4 md:grid-cols-3">
-            <Step done={verified} icon={MailCheck} title="Confirm your email">
-              {verified ? 'Done, thank you.' : 'Use the link we emailed you, or resend it from the banner above.'}
+            <Step done={verified} icon={MailCheck} title={t.confirmEmail}>
+              {verified ? t.confirmDone : t.confirmTodo}
             </Step>
-            <Step done={false} current={verified} icon={ShieldCheck} title="Our team reviews your company">
-              We check every company before it can contact candidates. We'll email you as soon as you're approved.
+            <Step done={false} current={verified} icon={ShieldCheck} title={t.review}>
+              {t.reviewText}
             </Step>
-            <Step done={false} icon={Search} title="Post positions and search talent">
-              Publish open positions and browse anonymized candidate profiles.
+            <Step done={false} icon={Search} title={t.post}>
+              {t.postText}
             </Step>
           </ol>
         )}
         <p className="mt-6 text-sm text-foreground/60">
-          Meanwhile, you can <Link to="/company/profile" className="font-semibold text-brand">complete your company profile</Link>. It helps our review.
+          {t.meanwhile} <Link to="/company/profile" className="font-semibold text-brand">{t.completeProfile}</Link>. {t.helpsReview}
         </p>
       </>
     )
@@ -66,30 +69,30 @@ export default function CompanyDashboard() {
     <>
       <PageHeader
         title={c.name}
-        description="Your positions and activity at a glance."
+        description={t.glance}
         actions={
           <div className="flex flex-wrap gap-2">
-            <Link to="/company/search" className={cn(buttonVariants({ variant: 'outline' }), 'h-10 rounded-md px-4')}><Search data-icon="inline-start" aria-hidden /> Search talent</Link>
-            <Link to="/company/jobs/new" className={cn(buttonVariants(), 'h-10 rounded-md bg-brand px-4 text-brand-foreground hover:bg-brand-hover')}><Plus data-icon="inline-start" aria-hidden /> Post a position</Link>
+            <Link to="/company/search" className={cn(buttonVariants({ variant: 'outline' }), 'h-10 rounded-md px-4')}><Search data-icon="inline-start" aria-hidden /> {t.searchTalent}</Link>
+            <Link to="/company/jobs/new" className={cn(buttonVariants(), 'h-10 rounded-md bg-brand px-4 text-brand-foreground hover:bg-brand-hover')}><Plus data-icon="inline-start" aria-hidden /> {t.postPosition}</Link>
           </div>
         }
       />
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat icon={BriefcaseBusiness} label="Open positions" value={jobs.isPending ? '…' : open} />
-        <Stat icon={Clock} label="Awaiting review" value={jobs.isPending ? '…' : pending} />
-        <Stat icon={Users} label="Applicants" value={jobs.isPending ? '…' : applicants} />
+        <Stat icon={BriefcaseBusiness} label={t.open} value={jobs.isPending ? '…' : open} />
+        <Stat icon={Clock} label={t.awaiting} value={jobs.isPending ? '…' : pending} />
+        <Stat icon={Users} label={t.applicants} value={jobs.isPending ? '…' : applicants} />
       </div>
 
       <section className="mt-8" aria-labelledby="recent-jobs">
         <div className="flex items-center justify-between">
-          <h2 id="recent-jobs" className="text-lg font-semibold tracking-[-.02em]">Recent positions</h2>
-          <Link to="/company/jobs" className="text-sm font-semibold text-brand">Manage all</Link>
+          <h2 id="recent-jobs" className="text-lg font-semibold tracking-[-.02em]">{t.recent}</h2>
+          <Link to="/company/jobs" className="text-sm font-semibold text-brand">{t.manageAll}</Link>
         </div>
         {jobs.isPending ? (
           <Spinner className="mt-4 size-5 text-foreground/50" />
         ) : list.length === 0 ? (
           <p className="mt-3 rounded-lg border border-dashed border-foreground/20 p-6 text-center text-sm text-foreground/60">
-            You haven't posted a position yet. <Link to="/company/jobs/new" className="font-semibold text-brand">Post your first position</Link>
+            {t.noJobs} <Link to="/company/jobs/new" className="font-semibold text-brand">{t.firstJob}</Link>
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-foreground/10 rounded-lg border border-foreground/12 bg-surface">
@@ -97,9 +100,9 @@ export default function CompanyDashboard() {
               <li key={j.id} className="flex items-center justify-between gap-4 px-5 py-4">
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{j.title}</p>
-                  <p className="text-sm text-foreground/60">{j.location} · {j.applicationCount} applicant{j.applicationCount === 1 ? '' : 's'} · updated {timeAgo(j.updatedAt)}</p>
+                  <p className="text-sm text-foreground/60">{j.location} · {t.applicantCount(j.applicationCount)} · {t.updated(timeAgo(j.updatedAt))}</p>
                 </div>
-                <StatusBadge status={j.status} label={j.status === 'pending' ? 'Awaiting review' : undefined} />
+                <StatusBadge status={j.status} label={j.status === 'pending' ? t.awaiting : undefined} />
               </li>
             ))}
           </ul>
@@ -120,12 +123,13 @@ function Stat({ icon: Icon, label, value }: { icon: typeof Users; label: string;
 }
 
 function Step({ done, current, icon: Icon, title, children }: { done: boolean; current?: boolean; icon: typeof Users; title: string; children: ReactNode }) {
+  const t = useT(companyText).dashboard
   return (
     <li className={cn('rounded-lg border p-6', current ? 'border-brand/50 bg-brand-soft/50' : 'border-foreground/12 bg-surface')}>
       <div className={cn('grid size-10 place-items-center rounded-md', done ? 'bg-brand text-brand-foreground' : 'bg-brand-soft text-brand')}>
         {done ? <Check size={20} aria-hidden /> : <Icon size={20} aria-hidden />}
       </div>
-      <p className="mt-5 font-semibold">{title}{done && <span className="sr-only"> (completed)</span>}{current && <span className="sr-only"> (in progress)</span>}</p>
+      <p className="mt-5 font-semibold">{title}{done && <span className="sr-only">{t.completed}</span>}{current && <span className="sr-only">{t.inProgress}</span>}</p>
       <p className="mt-1.5 text-sm leading-relaxed text-foreground/60">{children}</p>
     </li>
   )

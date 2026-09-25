@@ -22,15 +22,12 @@ import type { ApplySubmitResult, CoverLetterPolicy, JobDetail } from '@/types'
 import { Confirmation } from './Confirmation'
 import { QuickApply } from './QuickApply'
 import { ReviewStep } from './ReviewStep'
+import { useT } from '@/i18n'
+import { profileText } from '@/i18n/profile'
+import { formatDateTime } from '@/lib/format'
 
 const DRAFT_KEY = 'ai101-apply-draft'
-const STEPS = [
-  { key: 'basics', label: 'About you' },
-  { key: 'skills', label: 'Skills' },
-  { key: 'experience', label: 'Experience' },
-  { key: 'documents', label: 'CV & preferences' },
-  { key: 'review', label: 'Review' },
-] as const
+const STEPS = [{ key: 'basics' }, { key: 'skills' }, { key: 'experience' }, { key: 'documents' }, { key: 'review' }] as const
 
 type FormValues = ProfileFormValues & { consent: boolean; password?: string }
 const formSchema = profileSchema.extend({ consent: z.boolean(), password: z.string().optional() })
@@ -56,7 +53,8 @@ export default function Apply() {
   const jobId = params.get('job')
   const { data: me, isPending: mePending } = useMe()
   const job = useJob(jobId ?? undefined)
-  useDocumentTitle(job.data ? `Apply: ${job.data.title}` : 'Create your profile')
+  const t = useT(profileText).apply
+  useDocumentTitle(job.data ? t.titleFor(job.data.title) : t.createProfile)
   const [result, setResult] = useState<ApplySubmitResult | null>(null)
 
   if (result) return <Confirmation result={result} />
@@ -65,14 +63,14 @@ export default function Apply() {
   if (me && me.role !== 'candidate') {
     return (
       <Shell>
-        <Alert variant="info">You're logged in as a {me.role} account. Only candidate accounts can apply or create a profile.</Alert>
+        <Alert variant="info">{t.wrongRole(me.role)}</Alert>
       </Shell>
     )
   }
   if (jobId && (job.isError || !job.data)) {
     return (
       <Shell>
-        <Alert variant="error">This position is no longer open. <Link to="/jobs" className="font-semibold underline">Browse open positions</Link> or <Link to="/apply" className="font-semibold underline">create a general profile</Link>.</Alert>
+        <Alert variant="error">{t.closed} <Link to="/jobs" className="font-semibold underline">{t.browse}</Link> {t.or} <Link to="/apply" className="font-semibold underline">{t.general}</Link>.</Alert>
       </Shell>
     )
   }
@@ -98,6 +96,7 @@ function ApplyWizard({ job, accountEmail, onDone }: { job: JobDetail | null; acc
   const policy: CoverLetterPolicy = job?.coverLetterPolicy ?? 'optional'
   const needsPassword = !accountEmail
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const t = useT(profileText).apply
 
   // Restore a saved draft (only if it was for the same job, or both are general profiles).
   const [draft] = useState(() => {
@@ -149,7 +148,7 @@ function ApplyWizard({ job, accountEmail, onDone }: { job: JobDetail | null; acc
     if (key === 'review') return true
     if (key === 'documents') {
       const ok = await trigger([...STEP_FIELDS.preferences])
-      if (!cv) setFileError('Please upload your CV')
+      if (!cv) setFileError(t.uploadCv)
       const letterText = form.getValues('coverLetterText')?.trim()
       if (policy === 'required' && !letterText && !coverLetter) {
         setError('coverLetterText', { message: 'This position requires a cover letter: write one or upload a file' })
@@ -187,7 +186,7 @@ function ApplyWizard({ job, accountEmail, onDone }: { job: JobDetail | null; acc
   const onSubmit = handleSubmit(async (v) => {
     let ok = true
     if (!v.consent) {
-      setError('consent', { message: 'Please agree to continue' })
+      setError('consent', { message: t.agree })
       ok = false
     }
     if (needsPassword) {
@@ -225,22 +224,22 @@ function ApplyWizard({ job, accountEmail, onDone }: { job: JobDetail | null; acc
           <div className="mb-6 flex items-center gap-3 rounded-lg border border-foreground/12 bg-surface p-4">
             <div className="grid size-11 shrink-0 place-items-center rounded-md bg-brand-soft text-brand"><BriefcaseBusiness size={20} aria-hidden /></div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[.14em] text-foreground/50">Applying for</p>
+              <p className="text-xs font-semibold uppercase tracking-[.14em] text-foreground/50">{t.applyingFor}</p>
               <p className="truncate font-semibold">{job.title} <span className="font-normal text-foreground/60">· {job.company.name}</span></p>
             </div>
           </div>
         ) : null}
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[.14em] text-brand" aria-live="polite">Step {step + 1} of {STEPS.length} · {current.label}</p>
-        <h1 ref={headingRef} tabIndex={-1} className="text-3xl font-medium tracking-[-.05em] outline-none sm:text-4xl">{job ? 'Your application' : 'Create your profile'}</h1>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[.14em] text-brand" aria-live="polite">{t.step(step + 1, STEPS.length, t.steps[current.key])}</p>
+        <h1 ref={headingRef} tabIndex={-1} className="text-3xl font-medium tracking-[-.05em] outline-none sm:text-4xl">{job ? t.yourApplication : t.createProfile}</h1>
 
         <Stepper step={step} onJump={(i) => i < step && goTo(i)} />
 
         {draftNotice && (
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-md border border-foreground/12 bg-chip px-4 py-3 text-sm">
-            <span className="flex items-center gap-2"><History size={16} aria-hidden /> We restored your saved draft{draft ? ` from ${new Date(draft.savedAt).toLocaleString()}` : ''}. Files aren't saved, so you'll need to upload your CV again.</span>
+            <span className="flex items-center gap-2"><History size={16} aria-hidden /> {t.draftRestored(draft ? formatDateTime(draft.savedAt) : undefined)}</span>
             <span className="flex gap-3">
-              <button type="button" className="font-semibold text-brand" onClick={() => setDraftNotice(false)}>Keep it</button>
-              <button type="button" className="font-semibold text-destructive" onClick={discardDraft}>Start over</button>
+              <button type="button" className="font-semibold text-brand" onClick={() => setDraftNotice(false)}>{t.keep}</button>
+              <button type="button" className="font-semibold text-destructive" onClick={discardDraft}>{t.startOver}</button>
             </span>
           </div>
         )}
@@ -256,17 +255,17 @@ function ApplyWizard({ job, accountEmail, onDone }: { job: JobDetail | null; acc
                   {current.key === 'documents' && (
                     <div className="space-y-8">
                       <section className="space-y-5">
-                        <h2 className="text-lg font-semibold tracking-[-.02em]">Documents</h2>
-                        <FileDrop label="CV" file={cv} onChange={(f) => { setCv(f); setFileError(undefined) }} error={fileError} />
+                        <h2 className="text-lg font-semibold tracking-[-.02em]">{t.documents}</h2>
+                        <FileDrop label={t.cv} file={cv} onChange={(f) => { setCv(f); setFileError(undefined) }} error={fileError} />
                         {policy !== 'none' && (
                           <div className="space-y-4">
                             <p className="text-sm font-semibold">
-                              Cover letter <span className="font-normal text-foreground/55">{policy === 'required' ? '(required for this position)' : '(optional)'}</span>
+                              {t.coverLetter} <span className="font-normal text-foreground/55">{policy === 'required' ? t.requiredForPosition : t.optional}</span>
                             </p>
-                            <Field label="Write it here" error={errors.coverLetterText?.message}>
-                              {(ids) => <Textarea {...ids} rows={6} placeholder="Why are you interested, and what would you bring?" {...register('coverLetterText')} />}
+                            <Field label={t.writeHere} error={errors.coverLetterText?.message}>
+                              {(ids) => <Textarea {...ids} rows={6} placeholder={t.letterPlaceholder} {...register('coverLetterText')} />}
                             </Field>
-                            <FileDrop label="…or upload a file" file={coverLetter} onChange={setCoverLetter} />
+                            <FileDrop label={t.uploadFile} file={coverLetter} onChange={setCoverLetter} />
                           </div>
                         )}
                       </section>
@@ -277,7 +276,7 @@ function ApplyWizard({ job, accountEmail, onDone }: { job: JobDetail | null; acc
                     <div className="space-y-8">
                       <ReviewStep cvName={cv?.name} coverLetterName={coverLetter?.name} onEdit={goTo} />
                       {needsPassword && (
-                        <Field label="Choose a password" error={errors.password?.message} hint="You'll use it with your email to log in and track your applications.">
+                        <Field label={t.choosePassword} error={errors.password?.message} hint={t.passwordHint}>
                           {(ids) => <PasswordInput {...ids} autoComplete="new-password" {...register('password')} />}
                         </Field>
                       )}
@@ -285,7 +284,7 @@ function ApplyWizard({ job, accountEmail, onDone }: { job: JobDetail | null; acc
                         <label className="flex items-start gap-3 text-sm leading-relaxed">
                           <input type="checkbox" className="mt-1 size-4 accent-brand" aria-invalid={errors.consent ? true : undefined} {...register('consent')} />
                           <span>
-                            I agree to the <Link to="/privacy" target="_blank" className="font-semibold text-brand underline-offset-4 hover:underline">privacy policy</Link> and to being contacted about opportunities through AI101 Talents.
+                            {t.consentPrefix} <Link to="/privacy" target="_blank" className="font-semibold text-brand underline-offset-4 hover:underline">{t.privacyPolicy}</Link> {t.consentSuffix}
                           </span>
                         </label>
                         {errors.consent && <p className="mt-1.5 text-xs font-medium text-destructive">{errors.consent.message}</p>}
@@ -299,27 +298,27 @@ function ApplyWizard({ job, accountEmail, onDone }: { job: JobDetail | null; acc
             {submit.error && (
               <Alert variant="error" className="mt-5">
                 {submit.error.message}
-                {emailTaken && <> <Link to={`/login?next=${encodeURIComponent(`/apply${job ? `?job=${job.id}` : ''}`)}`} className="font-semibold underline">Log in</Link></>}
+                {emailTaken && <> <Link to={`/login?next=${encodeURIComponent(`/apply${job ? `?job=${job.id}` : ''}`)}`} className="font-semibold underline">{t.logIn}</Link></>}
               </Alert>
             )}
 
             <div className="mt-6 flex items-center justify-between gap-3">
               {step > 0 ? (
                 <Button type="button" variant="outline" className="h-11 rounded-md px-4" onClick={() => goTo(step - 1)}>
-                  <ArrowLeft data-icon="inline-start" aria-hidden /> Back
+                  <ArrowLeft data-icon="inline-start" aria-hidden /> {t.back}
                 </Button>
               ) : <span />}
               {step < STEPS.length - 1 ? (
                 <Button type="button" className="h-11 rounded-md bg-brand px-5 text-brand-foreground hover:bg-brand-hover" onClick={next}>
-                  Continue <ArrowRight data-icon="inline-end" aria-hidden />
+                  {t.continue} <ArrowRight data-icon="inline-end" aria-hidden />
                 </Button>
               ) : (
                 <Button type="submit" disabled={submit.isPending} className="h-11 rounded-md bg-brand px-5 text-brand-foreground hover:bg-brand-hover">
-                  {submit.isPending && <Spinner />} {job ? 'Submit application' : 'Create profile'}
+                  {submit.isPending && <Spinner />} {job ? t.submitApplication : t.createProfileButton}
                 </Button>
               )}
             </div>
-            <p className="mt-4 text-center text-xs text-foreground/50">Your progress is saved on this device as you go.</p>
+            <p className="mt-4 text-center text-xs text-foreground/50">{t.saved}</p>
           </form>
         </FormProvider>
       </div>
@@ -328,9 +327,10 @@ function ApplyWizard({ job, accountEmail, onDone }: { job: JobDetail | null; acc
 }
 
 function Stepper({ step, onJump }: { step: number; onJump: (i: number) => void }) {
+  const t = useT(profileText).apply
   return (
     <div className="mt-6">
-      <div className="h-1.5 overflow-hidden rounded-full bg-chip" role="progressbar" aria-label="Form progress" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={step + 1} aria-valuetext={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step].label}`}>
+      <div className="h-1.5 overflow-hidden rounded-full bg-chip" role="progressbar" aria-label={t.progress} aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={step + 1} aria-valuetext={t.stepAria(step + 1, STEPS.length, t.steps[STEPS[step].key])}>
         <m.div className="h-full rounded-full bg-brand" animate={{ width: `${((step + 1) / STEPS.length) * 100}%` }} transition={{ duration: 0.3 }} />
       </div>
       <ol className="mt-4 hidden grid-cols-5 gap-2 sm:grid">
@@ -346,7 +346,7 @@ function Stepper({ step, onJump }: { step: number; onJump: (i: number) => void }
               <span className={cn('grid size-6 shrink-0 place-items-center rounded-full text-[11px]', i < step ? 'bg-brand text-brand-foreground' : i === step ? 'bg-ink text-ink-foreground' : 'bg-chip')}>
                 {i < step ? <Check size={13} aria-hidden /> : i + 1}
               </span>
-              {s.label}
+              {t.steps[s.key]}
             </button>
           </li>
         ))}

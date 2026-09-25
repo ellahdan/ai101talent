@@ -8,6 +8,8 @@ import { Alert, Field, Input, PasswordInput, Spinner } from '@/components/ui/for
 import { dashboardPath, safeNext, useLogin, useMe } from '@/hooks/useAuth'
 import { emailSchema } from '@/lib/validation/auth'
 import { AuthCard, submitClass } from './AuthCard'
+import { useT } from '@/i18n'
+import { authText } from '@/i18n/auth'
 
 const schema = z.object({ email: emailSchema, password: z.string().min(1, 'Enter your password') })
 type Values = z.infer<typeof schema>
@@ -21,6 +23,7 @@ export default function Login() {
   const submitted = useRef(false)
   const { register, handleSubmit, formState: { errors } } = useForm<Values>({ resolver: zodResolver(schema) })
   const next = safeNext(params.get('next'))
+  const t = useT(authText)
 
   if (me && !submitted.current) return <Navigate to={next ?? dashboardPath(me.role)} replace />
 
@@ -31,23 +34,23 @@ export default function Login() {
 
   return (
     <AuthCard
-      title="Welcome back"
-      subtitle="Log in to manage your profile, jobs or requests."
-      footer={<>New to AI101 Talents? <Link to="/register" className="font-semibold text-brand">Create an account</Link></>}
+      title={t.login.title}
+      subtitle={t.login.subtitle}
+      footer={<>{t.login.newHere} <Link to="/register" className="font-semibold text-brand">{t.login.create}</Link></>}
     >
       <form onSubmit={onSubmit} noValidate className="space-y-5">
         {login.error && <Alert variant="error">{login.error.message}</Alert>}
-        <Field label="Email" error={errors.email?.message}>
+        <Field label={t.email} error={errors.email?.message}>
           {(ids) => <Input {...ids} type="email" autoComplete="email" {...register('email')} />}
         </Field>
-        <Field label="Password" error={errors.password?.message}>
+        <Field label={t.password} error={errors.password?.message}>
           {(ids) => <PasswordInput {...ids} autoComplete="current-password" {...register('password')} />}
         </Field>
         <div className="-mt-2 text-right">
-          <Link to="/forgot-password" className="text-sm font-semibold text-brand">Forgot password?</Link>
+          <Link to="/forgot-password" className="text-sm font-semibold text-brand">{t.login.forgot}</Link>
         </div>
         <Button type="submit" disabled={login.isPending} className={submitClass}>
-          {login.isPending && <Spinner />} Log in
+          {login.isPending && <Spinner />} {t.login.submit}
         </Button>
       </form>
     </AuthCard>

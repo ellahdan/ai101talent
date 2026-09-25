@@ -10,6 +10,8 @@ import { api } from '@/lib/api'
 import { meQueryKey } from '@/hooks/useAuth'
 import { passwordSchema } from '@/lib/validation/auth'
 import { AuthCard, submitClass } from './AuthCard'
+import { useT } from '@/i18n'
+import { authText } from '@/i18n/auth'
 
 const schema = z
   .object({ password: passwordSchema, confirm: z.string() })
@@ -19,6 +21,7 @@ type Values = z.infer<typeof schema>
 export default function ResetPassword() {
   const [params] = useSearchParams()
   const token = params.get('token')
+  const t = useT(authText)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const reset = useMutation({
@@ -26,31 +29,31 @@ export default function ResetPassword() {
     onSuccess: () => {
       // Every session was signed out by the reset.
       queryClient.setQueryData(meQueryKey, null)
-      toast.success('Password updated. Log in with your new password.')
+      toast.success(t.reset.done)
       navigate('/login', { replace: true })
     },
   })
   const { register, handleSubmit, formState: { errors } } = useForm<Values>({ resolver: zodResolver(schema) })
 
   return (
-    <AuthCard title="Choose a new password" footer={<Link to="/login" className="font-semibold text-brand">Back to log in</Link>}>
+    <AuthCard title={t.reset.title} footer={<Link to="/login" className="font-semibold text-brand">{t.backToLogin}</Link>}>
       {!token ? (
-        <Alert variant="error">This link is missing its token. <Link to="/forgot-password" className="font-semibold underline">Request a new link</Link>.</Alert>
+        <Alert variant="error">{t.missingToken} <Link to="/forgot-password" className="font-semibold underline">{t.requestNewLink}</Link>.</Alert>
       ) : (
         <form onSubmit={handleSubmit((v) => reset.mutate(v.password))} noValidate className="space-y-5">
           {reset.error && (
             <Alert variant="error">
-              {reset.error.message}. <Link to="/forgot-password" className="font-semibold underline">Request a new link</Link>.
+              {reset.error.message}. <Link to="/forgot-password" className="font-semibold underline">{t.requestNewLink}</Link>.
             </Alert>
           )}
-          <Field label="New password" error={errors.password?.message} hint="At least 8 characters, including a letter and a number.">
+          <Field label={t.newPassword} error={errors.password?.message} hint={t.passwordHint}>
             {(ids) => <PasswordInput {...ids} autoComplete="new-password" {...register('password')} />}
           </Field>
-          <Field label="Confirm new password" error={errors.confirm?.message}>
+          <Field label={t.confirmPassword} error={errors.confirm?.message}>
             {(ids) => <PasswordInput {...ids} autoComplete="new-password" {...register('confirm')} />}
           </Field>
           <Button type="submit" disabled={reset.isPending} className={submitClass}>
-            {reset.isPending && <Spinner />} Update password
+            {reset.isPending && <Spinner />} {t.updatePassword}
           </Button>
         </form>
       )}

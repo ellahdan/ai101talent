@@ -1,7 +1,9 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { AnimatePresence, m } from 'framer-motion'
+import { defineText, useT } from '@/i18n'
 
-const audiences = {
+const text = defineText({
+  tablist: 'How it works for',
   candidates: {
     label: 'For Candidates',
     eyebrow: 'A better way to be found',
@@ -22,15 +24,38 @@ const audiences = {
       ['03', 'Work with confidence', 'Clear profiles, thoughtful introductions, better outcomes.'],
     ],
   },
-} as const
+}, {
+  tablist: "So funktioniert's für",
+  candidates: {
+    label: 'Für Kandidaten',
+    eyebrow: 'Ein besserer Weg, gefunden zu werden',
+    heading: 'Werden Sie für das gesehen, was Sie wirklich können.',
+    steps: [
+      ['01', 'Profil erstellen', 'Bewerben Sie sich auf eine Stelle oder erstellen Sie ein wiederverwendbares Profil mit Ihren Fähigkeiten, Ihrer Erfahrung und Ihrem Lebenslauf.'],
+      ['02', 'Entdeckt werden', 'Freigegebene Unternehmen durchsuchen anonymisierte Profile. Ihre Kontaktdaten bleiben privat.'],
+      ['03', 'Zusagen zu Ihren Bedingungen', 'Wir prüfen jede Anfrage und stellen Sie nur vor, wenn Sie zustimmen.'],
+    ],
+  },
+  companies: {
+    label: 'Für Unternehmen',
+    eyebrow: 'Ein besserer Weg einzustellen',
+    heading: 'Mehr erreichen mit den richtigen Menschen.',
+    steps: [
+      ['01', 'Bedarf beschreiben', 'Sagen Sie uns, was Sie brauchen und bis wann.'],
+      ['02', 'Die passende Person treffen', 'Entdecken Sie Menschen mit den Fähigkeiten, die Sie weiterbringen.'],
+      ['03', 'Mit Zuversicht zusammenarbeiten', 'Klare Profile, durchdachte Vorstellungen, bessere Ergebnisse.'],
+    ],
+  },
+})
 
-type Audience = keyof typeof audiences
+type Audience = 'candidates' | 'companies'
 const order: Audience[] = ['candidates', 'companies']
 
 export function HowItWorks() {
   const [active, setActive] = useState<Audience>('candidates')
   const tabRefs = useRef<Record<Audience, HTMLButtonElement | null>>({ candidates: null, companies: null })
-  const content = audiences[active]
+  const t = useT(text)
+  const content = t[active]
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
@@ -46,7 +71,7 @@ export function HowItWorks() {
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-[.14em] text-brand-soft-foreground">{content.eyebrow}</p>
             <h2 id="how-heading" className="text-3xl font-medium tracking-[-.05em] sm:text-5xl">{content.heading}</h2>
-            <div role="tablist" aria-label="How it works for" className="mt-8 inline-flex rounded-full bg-surface p-1 shadow-sm" onKeyDown={onKeyDown}>
+            <div role="tablist" aria-label={t.tablist} className="mt-8 inline-flex rounded-full bg-surface p-1 shadow-sm" onKeyDown={onKeyDown}>
               {order.map((key) => (
                 <button
                   key={key}
@@ -60,7 +85,7 @@ export function HowItWorks() {
                   onClick={() => setActive(key)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold outline-none transition-colors duration-300 focus-visible:ring-3 focus-visible:ring-ring/50 ${active === key ? 'bg-ink text-ink-foreground' : 'text-foreground/60 hover:text-foreground'}`}
                 >
-                  {audiences[key].label}
+                  {t[key].label}
                 </button>
               ))}
             </div>

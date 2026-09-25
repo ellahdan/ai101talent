@@ -1,6 +1,8 @@
 import { useId, useRef, useState, type DragEvent } from 'react'
 import { FileText, UploadCloud, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { translateMessage, useT } from '@/i18n'
+import { common } from '@/i18n/common'
 
 export const MAX_FILE_BYTES = 5 * 1024 * 1024
 const ACCEPT = '.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -25,12 +27,13 @@ interface FileDropProps {
 }
 
 /** Drag-and-drop or click-to-browse zone for a single PDF/DOCX document. */
-export function FileDrop({ label, file, onChange, error, currentName, hint = 'PDF or Word (.docx), up to 5 MB' }: FileDropProps) {
+export function FileDrop({ label, file, onChange, error, currentName, hint }: FileDropProps) {
+  const c = useT(common)
   const inputRef = useRef<HTMLInputElement>(null)
   const id = useId()
   const [dragging, setDragging] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
-  const shownError = localError ?? error
+  const shownError = translateMessage(localError ?? error ?? '') || undefined
 
   const pick = (f: File | undefined) => {
     if (!f) return
@@ -54,7 +57,7 @@ export function FileDrop({ label, file, onChange, error, currentName, hint = 'PD
             <p className="truncate text-sm font-semibold">{file.name}</p>
             <p className="text-xs text-foreground/55">{formatBytes(file.size)}</p>
           </div>
-          <button type="button" onClick={() => onChange(null)} aria-label={`Remove ${file.name}`} className="grid size-8 place-items-center rounded-md text-foreground/60 hover:bg-foreground/10">
+          <button type="button" onClick={() => onChange(null)} aria-label={c.files.remove(file.name)} className="grid size-8 place-items-center rounded-md text-foreground/60 hover:bg-foreground/10">
             <X size={16} aria-hidden />
           </button>
         </div>
@@ -75,12 +78,12 @@ export function FileDrop({ label, file, onChange, error, currentName, hint = 'PD
           <UploadCloud size={26} className="text-brand" aria-hidden />
           <p className="text-sm">
             <button type="button" onClick={() => inputRef.current?.click()} className="font-semibold text-brand underline-offset-4 hover:underline">
-              Choose a file
+              {c.files.choose}
             </button>{' '}
-            or drag it here
+            {c.files.orDrag}
           </p>
-          <p className="text-xs text-foreground/55">{hint}</p>
-          {currentName && <p className="text-xs text-foreground/65">Current file: <span className="font-semibold">{currentName}</span></p>}
+          <p className="text-xs text-foreground/55">{hint ?? c.files.hint}</p>
+          {currentName && <p className="text-xs text-foreground/65">{c.form.currentFile} <span className="font-semibold">{currentName}</span></p>}
         </div>
       )}
       <input

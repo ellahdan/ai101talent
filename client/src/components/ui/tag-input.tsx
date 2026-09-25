@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Plus, X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
+import { useT } from '@/i18n'
+import { common } from '@/i18n/common'
 
 function useDebounced<T>(value: T, ms = 200) {
   const [debounced, setDebounced] = useState(value)
@@ -36,6 +38,7 @@ interface ComboboxInputProps {
 
 /** Text input with an autocomplete list. Enter or comma adds the typed value; arrows pick a suggestion. */
 export function ComboboxInput({ type, exclude, onAdd, placeholder, ...aria }: ComboboxInputProps) {
+  const c = useT(common)
   const [value, setValue] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
@@ -100,7 +103,7 @@ export function ComboboxInput({ type, exclude, onAdd, placeholder, ...aria }: Co
           type="button"
           onClick={() => add(value)}
           disabled={!value.trim()}
-          aria-label={type === 'skills' ? 'Add skill' : 'Add tool'}
+          aria-label={type === 'skills' ? c.tags.addSkill : c.tags.addTool}
           className="grid size-11 shrink-0 place-items-center rounded-md border border-foreground/15 text-foreground/70 transition hover:border-brand hover:text-brand disabled:opacity-40"
         >
           <Plus size={17} aria-hidden />
@@ -131,15 +134,16 @@ export function ComboboxInput({ type, exclude, onAdd, placeholder, ...aria }: Co
 
 /** Chips + autocomplete input for a list of strings (e.g. tools). */
 export function TagInput({ value, onChange, type, placeholder, ...aria }: { value: string[]; onChange: (v: string[]) => void; type: 'skills' | 'tools'; placeholder?: string; id?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }) {
+  const c = useT(common)
   return (
     <div className="space-y-2.5">
       <ComboboxInput type={type} exclude={value} onAdd={(v) => onChange([...value, v])} placeholder={placeholder} {...aria} />
       {value.length > 0 && (
-        <ul className="flex flex-wrap gap-2" aria-label="Added">
+        <ul className="flex flex-wrap gap-2" aria-label={c.tags.added}>
           {value.map((tag) => (
             <li key={tag} className="inline-flex items-center gap-1 rounded-full bg-chip py-1 pr-1 pl-3 text-sm">
               {tag}
-              <button type="button" onClick={() => onChange(value.filter((t) => t !== tag))} aria-label={`Remove ${tag}`} className="grid size-6 place-items-center rounded-full text-foreground/50 hover:bg-foreground/10 hover:text-foreground">
+              <button type="button" onClick={() => onChange(value.filter((t) => t !== tag))} aria-label={c.tags.remove(tag)} className="grid size-6 place-items-center rounded-full text-foreground/50 hover:bg-foreground/10 hover:text-foreground">
                 <X size={13} aria-hidden />
               </button>
             </li>

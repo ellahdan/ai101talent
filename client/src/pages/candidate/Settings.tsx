@@ -11,13 +11,17 @@ import { api } from '@/lib/api'
 import { meQueryKey, useMe } from '@/hooks/useAuth'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ChangePassword } from '@/components/account/ChangePassword'
+import { translateMessage, useT } from '@/i18n'
+import { common } from '@/i18n/common'
+import { candidateText } from '@/i18n/candidate'
 
 export default function CandidateSettings() {
-  useDocumentTitle('Settings')
+  const t = useT(candidateText).settings
+  useDocumentTitle(t.title)
   const { data: me } = useMe()
   return (
     <>
-      <PageHeader title="Settings" description={<>Signed in as <strong className="text-foreground">{me?.email}</strong>{me?.isVerified ? ' · email confirmed' : ' · email not confirmed yet'}</>} />
+      <PageHeader title={t.title} description={<>{t.signedInAs} <strong className="text-foreground">{me?.email}</strong>{me?.isVerified ? t.confirmed : t.notConfirmed}</>} />
       <div className="space-y-6">
         <ChangePasswordPanel />
         <ExportData />
@@ -38,34 +42,36 @@ function Panel({ icon: Icon, title, description, children, danger }: { icon: typ
 }
 
 function ChangePasswordPanel() {
+  const t = useT(candidateText).settings
   return (
-    <Panel icon={KeyRound} title="Change password" description="Changing your password signs you out on every other device.">
+    <Panel icon={KeyRound} title={t.password} description={t.passwordText}>
       <ChangePassword />
     </Panel>
   )
 }
 
 function ExportData() {
+  const t = useT(candidateText).settings
   const [busy, setBusy] = useState(false)
   const download = async () => {
     setBusy(true)
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL ?? ''}/api/candidates/me/export`, { credentials: 'include' })
-      if (!res.ok) throw new Error('Export failed')
+      if (!res.ok) throw new Error(t.exportFailed)
       const name = res.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1] ?? 'ai101-talents-data.json'
       const url = URL.createObjectURL(await res.blob())
       const a = Object.assign(document.createElement('a'), { href: url, download: name })
       a.click()
       URL.revokeObjectURL(url)
     } catch (err) {
-      toast.error((err as Error).message)
+      toast.error(translateMessage((err as Error).message))
     } finally {
       setBusy(false)
     }
   }
   return (
-    <Panel icon={Download} title="Export your data" description="Download everything we hold about you (profile, CV text, applications and contact requests) as a JSON file.">
-      <Button type="button" variant="outline" className="h-10 rounded-md" onClick={download} disabled={busy}>{busy ? <Spinner /> : <Download data-icon="inline-start" aria-hidden />} Download my data</Button>
+    <Panel icon={Download} title={t.export} description={t.exportText}>
+      <Button type="button" variant="outline" className="h-10 rounded-md" onClick={download} disabled={busy}>{busy ? <Spinner /> : <Download data-icon="inline-start" aria-hidden />} {t.download}</Button>
     </Panel>
   )
 }
@@ -75,19 +81,21 @@ function DeleteAccount() {
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const t = useT(candidateText).settings
+  const c = useT(common)
   const remove = useMutation({
     mutationFn: () => api('/api/candidates/me', { method: 'DELETE', body: JSON.stringify({ password }) }),
     onSuccess: () => {
       queryClient.clear()
       queryClient.setQueryData(meQueryKey, null)
-      toast.success('Your account and all your data have been deleted.')
+      toast.success(t.deleted)
       navigate('/', { replace: true })
     },
   })
   return (
-    <Panel icon={Trash2} danger title="Delete your account" description="Permanently deletes your profile, CV and cover letters, applications and contact requests. This cannot be undone.">
-      <Button type="button" className="h-10 rounded-md bg-destructive px-4 text-white hover:bg-destructive/90" onClick={() => setOpen(true)}>Delete my account</Button>
-      <Modal open={open} onOpenChange={setOpen} title="Delete your account?" description="All your data and files are permanently deleted. Enter your password to confirm.">
+    <Panel icon={Trash2} danger title={t.delete} description={t.deleteText}>
+      <Button type="button" className="h-10 rounded-md bg-destructive px-4 text-white hover:bg-destructive/90" onClick={() => setOpen(true)}>{t.deleteButton}</Button>
+      <Modal open={open} onOpenChange={setOpen} title={t.deleteTitle} description={t.deleteConfirmText}>
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -96,10 +104,10 @@ function DeleteAccount() {
           className="space-y-4"
         >
           {remove.error && <Alert variant="error">{remove.error.message}</Alert>}
-          <Field label="Password">{(ids) => <PasswordInput {...ids} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />}</Field>
+          <Field label={t.password_}>{(ids) => <PasswordInput {...ids} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />}</Field>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" className="h-10 rounded-md" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={!password || remove.isPending} className="h-10 rounded-md bg-destructive px-4 text-white hover:bg-destructive/90">{remove.isPending && <Spinner />} Delete permanently</Button>
+            <Button type="button" variant="outline" className="h-10 rounded-md" onClick={() => setOpen(false)}>{c.actions.cancel}</Button>
+            <Button type="submit" disabled={!password || remove.isPending} className="h-10 rounded-md bg-destructive px-4 text-white hover:bg-destructive/90">{remove.isPending && <Spinner />} {t.deletePermanently}</Button>
           </div>
         </form>
       </Modal>

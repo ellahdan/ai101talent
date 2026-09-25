@@ -8,15 +8,19 @@ import { useMyApplications, useMyProfile } from '@/hooks/useCandidate'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { cn } from '@/lib/utils'
 import { NoProfile } from './CandidateLayout'
+import { formatDate } from '@/lib/format'
+import { useT } from '@/i18n'
+import { candidateText } from '@/i18n/candidate'
 
 export default function MyApplications() {
-  useDocumentTitle('My applications')
+  const t = useT(candidateText).applications
+  useDocumentTitle(t.documentTitle)
   const profile = useMyProfile()
   const { data, isPending, error } = useMyApplications(Boolean(profile.data))
 
   return (
     <>
-      <PageHeader title="Applications" description="Track where each application stands. We update statuses as our team reviews them." />
+      <PageHeader title={t.title} description={t.description} />
       {profile.isPending || (profile.data && isPending) ? (
         <Spinner className="size-6 text-foreground/50" />
       ) : !profile.data ? (
@@ -24,8 +28,8 @@ export default function MyApplications() {
       ) : error ? (
         <Alert variant="error">{error.message}</Alert>
       ) : !data?.length ? (
-        <EmptyState icon={ListChecks} title="No applications yet" action={<Link to="/jobs" className={cn(buttonVariants(), 'h-10 rounded-md bg-brand px-4 text-brand-foreground hover:bg-brand-hover')}>Browse open positions</Link>}>
-          When you apply to a position it appears here with its status.
+        <EmptyState icon={ListChecks} title={t.none} action={<Link to="/jobs" className={cn(buttonVariants(), 'h-10 rounded-md bg-brand px-4 text-brand-foreground hover:bg-brand-hover')}>{t.browse}</Link>}>
+          {t.noneText}
         </EmptyState>
       ) : (
         <ul className="space-y-3">
@@ -36,17 +40,17 @@ export default function MyApplications() {
                   {a.job.status === 'open' ? (
                     <Link to={`/jobs/${a.job.id}`} className="font-semibold hover:text-brand">{a.job.title}</Link>
                   ) : (
-                    <p className="font-semibold">{a.job.title} <span className="text-xs font-normal text-foreground/50">(position closed)</span></p>
+                    <p className="font-semibold">{a.job.title} <span className="text-xs font-normal text-foreground/50">{t.closed}</span></p>
                   )}
                   <p className="text-sm text-foreground/60">{a.job.companyName} · {a.job.location}</p>
                 </div>
                 <StatusBadge status={a.status} />
               </div>
-              <ol className="mt-4 flex flex-wrap gap-x-2 gap-y-1 text-xs text-foreground/55" aria-label="Status history">
+              <ol className="mt-4 flex flex-wrap gap-x-2 gap-y-1 text-xs text-foreground/55" aria-label={t.history}>
                 {a.statusHistory.map((h, i) => (
                   <li key={i} className="flex items-center gap-2">
                     {i > 0 && <span aria-hidden>→</span>}
-                    <span><span className="font-semibold text-foreground/75">{statusLabel(h.status)}</span> {new Date(h.at).toLocaleDateString()}</span>
+                    <span><span className="font-semibold text-foreground/75">{statusLabel(h.status)}</span> {formatDate(h.at)}</span>
                   </li>
                 ))}
               </ol>

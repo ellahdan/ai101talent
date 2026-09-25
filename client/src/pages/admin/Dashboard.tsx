@@ -7,28 +7,32 @@ import { ChartCard, ColumnChart, HorizontalBars } from '@/components/admin/Chart
 import { useAdminDashboard } from '@/hooks/useAdminOffice'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { cn } from '@/lib/utils'
+import { formatDate } from '@/lib/format'
+import { getLocale, useT } from '@/i18n'
+import { adminText } from '@/i18n/admin'
 
-const compact = new Intl.NumberFormat('en', { notation: 'compact' })
-const weekLabel = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+const weekLabel = (iso: string) => formatDate(`${iso}T00:00:00Z`, { month: 'short', day: 'numeric', timeZone: 'UTC' })
 
 export default function AdminDashboard() {
-  useDocumentTitle('Admin dashboard')
+  const t = useT(adminText).dashboard
+  const compact = new Intl.NumberFormat(getLocale(), { notation: 'compact' })
+  useDocumentTitle(t.title)
   const { data, isPending, error } = useAdminDashboard()
 
   const k = data?.kpis
   const tiles = [
-    { label: 'Candidates', value: k?.candidates, icon: UsersRound, to: '/admin/candidates' },
-    { label: 'Applications', value: k?.applications, icon: FileStack, to: '/admin/pipeline' },
-    { label: 'Open positions', value: k?.openJobs, icon: BriefcaseBusiness, to: '/admin/jobs?status=open' },
-    { label: 'Hires', value: k?.hires, icon: Handshake },
-    { label: 'Companies to approve', value: k?.pendingCompanies, icon: Building2, to: '/admin/companies?status=pending', attention: true },
-    { label: 'Positions to review', value: k?.pendingJobs, icon: ListChecks, to: '/admin/jobs?status=pending', attention: true },
-    { label: 'Requests to review', value: k?.requestsAwaitingReview, icon: Inbox, to: '/admin/requests', attention: true },
+    { label: t.candidates, value: k?.candidates, icon: UsersRound, to: '/admin/candidates' },
+    { label: t.applications, value: k?.applications, icon: FileStack, to: '/admin/pipeline' },
+    { label: t.openJobs, value: k?.openJobs, icon: BriefcaseBusiness, to: '/admin/jobs?status=open' },
+    { label: t.hires, value: k?.hires, icon: Handshake },
+    { label: t.pendingCompanies, value: k?.pendingCompanies, icon: Building2, to: '/admin/companies?status=pending', attention: true },
+    { label: t.pendingJobs, value: k?.pendingJobs, icon: ListChecks, to: '/admin/jobs?status=pending', attention: true },
+    { label: t.pendingRequests, value: k?.requestsAwaitingReview, icon: Inbox, to: '/admin/requests', attention: true },
   ]
 
   return (
     <>
-      <PageHeader title="Dashboard" description="Activity across candidates, companies, positions and introductions." />
+      <PageHeader title={t.heading} description={t.description} />
       {error && <Alert variant="error" className="mb-6">{error.message}</Alert>}
 
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7" aria-busy={isPending}>
@@ -48,17 +52,17 @@ export default function AdminDashboard() {
 
       {data && (
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <ChartCard title="New candidate profiles" subtitle="Per week, last 12 weeks" valueLabel="Profiles" data={data.candidatesPerWeek.map((w) => ({ label: weekLabel(w.weekStart), value: w.count }))}>
-            <ColumnChart valueLabel="Profiles" data={data.candidatesPerWeek.map((w) => ({ label: weekLabel(w.weekStart), value: w.count }))} />
+          <ChartCard title={t.newProfiles} subtitle={t.perWeek} valueLabel={t.profiles} data={data.candidatesPerWeek.map((w) => ({ label: weekLabel(w.weekStart), value: w.count }))}>
+            <ColumnChart valueLabel={t.profiles} data={data.candidatesPerWeek.map((w) => ({ label: weekLabel(w.weekStart), value: w.count }))} />
           </ChartCard>
-          <ChartCard title="Applications by stage" subtitle="All positions" valueLabel="Applications" data={data.applicationsByStatus.map((s) => ({ label: statusLabel(s.status), value: s.count }))}>
-            <HorizontalBars valueLabel="Applications" data={data.applicationsByStatus.map((s) => ({ label: statusLabel(s.status), value: s.count }))} />
+          <ChartCard title={t.byStage} subtitle={t.allPositions} valueLabel={t.applications} data={data.applicationsByStatus.map((s) => ({ label: statusLabel(s.status), value: s.count }))}>
+            <HorizontalBars valueLabel={t.applications} data={data.applicationsByStatus.map((s) => ({ label: statusLabel(s.status), value: s.count }))} />
           </ChartCard>
-          <ChartCard title="Contact requests by status" subtitle="All time" valueLabel="Requests" data={data.requestsByStatus.map((s) => ({ label: s.status === 'rejected' ? 'Rejected' : statusLabel(s.status), value: s.count }))}>
-            <HorizontalBars labelWidth={150} valueLabel="Requests" data={data.requestsByStatus.map((s) => ({ label: s.status === 'rejected' ? 'Rejected' : statusLabel(s.status), value: s.count }))} />
+          <ChartCard title={t.requestsByStatus} subtitle={t.allTime} valueLabel={t.requests} data={data.requestsByStatus.map((s) => ({ label: s.status === 'rejected' ? t.rejected : statusLabel(s.status), value: s.count }))}>
+            <HorizontalBars labelWidth={170} valueLabel={t.requests} data={data.requestsByStatus.map((s) => ({ label: s.status === 'rejected' ? t.rejected : statusLabel(s.status), value: s.count }))} />
           </ChartCard>
-          <ChartCard title="Most common candidate skills" subtitle="Top 10, by number of profiles" valueLabel="Profiles" data={data.topSkills.map((s) => ({ label: s.name, value: s.count }))}>
-            <HorizontalBars valueLabel="Profiles" data={data.topSkills.map((s) => ({ label: s.name, value: s.count }))} />
+          <ChartCard title={t.topSkills} subtitle={t.topSkillsSub} valueLabel={t.profiles} data={data.topSkills.map((s) => ({ label: s.name, value: s.count }))}>
+            <HorizontalBars valueLabel={t.profiles} data={data.topSkills.map((s) => ({ label: s.name, value: s.count }))} />
           </ChartCard>
         </div>
       )}

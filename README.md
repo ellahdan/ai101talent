@@ -3,8 +3,9 @@
 A talent platform where candidates apply to open positions or create a standalone profile, companies search anonymized candidates and ask to speak with them, and an admin mediates **every** contact between the two.
 
 - **Candidates** apply or create a reusable profile (multi-step form, CV upload), get a unique applicant number (`AI101-000123`), track applications, accept or decline forwarded contact requests, and can export or permanently delete their data.
-- **Companies** are approved by an admin before they can post positions (also reviewed) or search talent. They see anonymized profiles only, keep shortlists and send "Request to speak".
+- **Companies** (and any visitor) can browse anonymized profiles in the public talent search at `/talent`. Contacting a candidate or keeping shortlists requires a company account approved by an admin; positions are reviewed too. Companies never see more than the anonymized profile until a candidate accepts an introduction.
 - **Admins** review every request (forward, ask for info, reject, introduce), moderate companies and positions, search all CVs with highlighted matches, run a Kanban pipeline, and audit who viewed which CV.
+- **English / German**: every screen is available in both languages via the flag switch in the header (see [Languages](#languages)).
 
 ## Tech stack
 
@@ -136,13 +137,23 @@ Nodemailer over SMTP, with shared HTML templates (inbox preview text, Outlook-sa
 ### Data retention
 A **node-cron** job (default daily at 03:00 UTC) deletes candidate accounts inactive for longer than the period set in **Admin → Settings** (default 24 months; activity = login, profile update, application or reply to a request). Deletion removes the profile, CV and cover-letter files, applications, contact requests and shortlist entries, exactly like "Delete my account". The audit log keeps an anonymous `candidate.retention_deleted` entry. Run on one instance only (`RETENTION_ENABLED`); preview with `npm run retention -w server -- --dry-run`.
 
+### Languages
+
+The web app is available in English and German. The flag switch in the header (public pages and dashboards) changes the language instantly; the choice is saved in `localStorage` (`ai101-lang`), and first-time visitors get German when their browser prefers it.
+
+- `client/src/i18n/index.tsx`: a small typed layer (no library). `defineText(en, de)` declares both languages side by side and TypeScript rejects a German text whose shape differs from the English one; components read their text with `useT(text)`.
+- Shared text lives in `client/src/i18n/*.ts` (common, auth, talent, profile, candidate, company, jobForm, admin); page-specific text is declared in the page file.
+- API errors and validation messages arrive in English and are translated through `client/src/i18n/messages.ts` (keyed by the English text). A message missing there is shown in English.
+- Dates and numbers use `de-DE` / `en-GB` formatting (`client/src/lib/format.ts`).
+- Content entered by users (job descriptions, profiles, messages) and emails sent by the server are not translated.
+
 ### Security
 - **helmet** security headers; **CORS** limited to `CLIENT_URL` with credentials; state-changing requests from another origin are rejected (`BAD_ORIGIN`), on top of SameSite cookies.
-- **Rate limits**: 600 requests/15 min per IP on the API, 20/15 min on login, registration and password flows, 5/h for email resends, 150/15 min talent searches and 20 contact requests/day per company account.
+- **Rate limits**: 600 requests/15 min per IP on the API, 20/15 min on login, registration and password flows, 5/h for email resends, 150/15 min talent searches per account (90 per IP for guests) and 20 contact requests/day per company account.
 - **Injection**: Zod validation on every input (body, query, params); keys starting with `$` or containing `.` are stripped (Express 5–compatible replacement for express-mongo-sanitize); flat query strings only; regex inputs are escaped.
 - **Uploads**: PDF/DOCX only, 5 MB max, content checked by magic bytes, stored privately, served only through signed expiring links, with a sandboxing Content-Security-Policy on the file response. Every CV view and download is audit-logged.
 - **Output**: rich-text job descriptions sanitized server-side (`sanitize-html`); CSV exports neutralize formula injection; errors never leak internals in production.
-- **Privacy**: companies only receive anonymized fields (never name, email, phone, links, employers, CV or CV text); no search filters on age, gender, marital status, nationality, religion or photos; candidates can export (JSON) and delete their data.
+- **Privacy**: the talent search (public) only returns anonymized fields (never name, email, phone, links, employers, CV or CV text); no search filters on age, gender, marital status, nationality, religion or photos; candidates can export (JSON) and delete their data.
 - With `SERVE_CLIENT=true`, the web app is served with a strict CSP (`script-src 'self'`, no inline scripts, `frame-ancestors 'none'`).
 
 ### Performance & accessibility
@@ -280,9 +291,11 @@ Job descriptions are rich text (TipTap in the browser) and are sanitized on the 
 
 Suspending a company hides all its positions from the public job board.
 
-### Talent search and shortlists (approved companies)
+### Talent search and shortlists
 
-Companies only ever see **anonymized** candidates who are visible and gave consent: applicant number, headline, years of experience, skills, tools, languages, location, availability and preferred work mode. Name, email, phone, links, employer names, CV and CV text are never returned. There are deliberately no filters on age, gender, marital status, nationality, religion or photos.
+The talent search is **public**: visitors can browse and filter profiles at `/talent` (and open `/talent/:id`) without an account. When a guest clicks "Request to speak" or "Save", they are asked to register a company (or log in). Approved companies are redirected to the same search inside their dashboard (`/company/search`), where results also show their shortlists and request statuses. Contact requests and shortlists still require a verified, approved company.
+
+Everyone only ever sees **anonymized** candidates who are visible and gave consent: applicant number, headline, years of experience, skills, tools, languages, location, availability and preferred work mode. Name, email, phone, links, employer names, CV and CV text are never returned. There are deliberately no filters on age, gender, marital status, nationality, religion or photos.
 
 | Endpoint | Description |
 | --- | --- |
@@ -292,7 +305,7 @@ Companies only ever see **anonymized** candidates who are visible and gave conse
 | `GET/POST /api/shortlists` · `PATCH/DELETE /api/shortlists/:id` | Named, private shortlists |
 | `GET /api/shortlists/:id/candidates` · `POST …/candidates` · `DELETE …/candidates/:candidateId` | Shortlist contents |
 
-Search is limited to 150 requests per 15 minutes per company account.
+Search is limited to 150 requests per 15 minutes per logged-in account, and 90 per 15 minutes per IP address for guests, who also get at most 12 results per page. `robots.txt` asks search engines not to index `/talent`.
 
 ### Admin-mediated contact requests
 
