@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react'
 import { createBrowserRouter, Outlet, ScrollRestoration } from 'react-router-dom'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import Landing from '@/pages/Landing'
+import { DraftRequestSender } from '@/components/talent/DraftRequestSender'
 
 const Login = lazy(() => import('@/pages/auth/Login'))
 const Register = lazy(() => import('@/pages/auth/Register'))
@@ -60,6 +61,7 @@ function Root() {
   return (
     <>
       <ScrollRestoration />
+      <DraftRequestSender />
       <Outlet />
     </>
   )

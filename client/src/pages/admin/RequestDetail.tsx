@@ -1,13 +1,13 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, Building2, CalendarClock, Check, Download, EyeOff, Forward, HelpCircle, Mail, Phone, Send, UserRound, Wallet, X } from 'lucide-react'
+import { ArrowLeft, Building2, CalendarClock, Check, Download, EyeOff, Forward, HelpCircle, Mail, Phone, Send, UserRound, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert, Field, Input, Spinner, Textarea } from '@/components/ui/form'
 import { StatusBadge, statusLabel } from '@/components/ui/status-badge'
 import { openRequestCv, useAdminRequest, useRequestAction, type RequestAction } from '@/hooks/useAdminRequests'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { formatDateTime, formatSalary } from '@/lib/format'
+import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { AdminRequest, RequestMessage } from '@/types'
 import { useT } from '@/i18n'
@@ -49,7 +49,6 @@ export default function AdminRequestDetail() {
             )}
             <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
               <div className="flex gap-2"><dt><CalendarClock size={15} className="mt-0.5 text-foreground/50" aria-label={t.proposedTimes} /></dt><dd>{r.proposedTimes.map(dateTime).join(' · ')}</dd></div>
-              {r.salaryRange && <div className="flex gap-2"><dt><Wallet size={15} className="mt-0.5 text-foreground/50" aria-label={t.salary} /></dt><dd>{formatSalary(r.salaryRange)}</dd></div>}
               {r.interviewDate && <div className="flex gap-2"><dt><CalendarClock size={15} className="mt-0.5 text-brand" aria-label={t.interview} /></dt><dd>{t.interviewAt} <strong>{dateTime(r.interviewDate)}</strong></dd></div>}
             </dl>
             {r.candidateNote && <p className="mt-4 text-sm">{t.candidateNote} “{r.candidateNote}”</p>}
@@ -118,6 +117,8 @@ function ActionPanel({ request: r }: { request: AdminRequest }) {
   const error = action.error && <Alert variant="error" className="mt-3">{action.error.message}</Alert>
 
   switch (r.status) {
+    case 'awaiting_company_approval':
+      return <Waiting text={t.companyNotApproved} request={r} run={run} busy={busy} error={error} />
     case 'pending_admin_review':
     case 'info_requested':
       return <ReviewActions request={r} run={run} busy={busy} error={error} />

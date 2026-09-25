@@ -10,7 +10,7 @@ export const companyKeys = {
 }
 
 export const useMyCompany = () => useQuery({ queryKey: companyKeys.profile, queryFn: () => api<CompanyProfile>('/api/companies/me') })
-export const useMyJobs = () => useQuery({ queryKey: companyKeys.jobs, queryFn: () => api<ManagedJob[]>('/api/companies/me/jobs') })
+export const useMyJobs = (enabled = true) => useQuery({ queryKey: companyKeys.jobs, queryFn: () => api<ManagedJob[]>('/api/companies/me/jobs'), enabled })
 export const useMyJob = (id: string | undefined) =>
   useQuery({ queryKey: companyKeys.job(id ?? ''), queryFn: () => api<ManagedJob>(`/api/companies/me/jobs/${id}`), enabled: Boolean(id) })
 

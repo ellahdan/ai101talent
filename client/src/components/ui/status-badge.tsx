@@ -24,6 +24,7 @@ const tonesByStatus: Record<string, Tone> = {
   hired: 'success',
   rejected: 'danger',
   // Contact requests
+  awaiting_company_approval: 'neutral',
   pending_admin_review: 'warning',
   info_requested: 'warning',
   forwarded_to_candidate: 'info',

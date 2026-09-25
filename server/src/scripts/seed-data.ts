@@ -71,7 +71,6 @@ export interface SeedJob {
   requiredSkills: string[]
   niceToHaveSkills: string[]
   languages: [string, Proficiency][]
-  salary?: [number, number]
   featured?: boolean
   status: 'open' | 'pending' | 'closed'
   daysAgo: number
@@ -93,7 +92,6 @@ export const jobs: SeedJob[] = [
     requiredSkills: ['React', 'TypeScript', 'Testing'],
     niceToHaveSkills: ['Next.js', 'Data visualization'],
     languages: [['English', 'fluent']],
-    salary: [65000, 85000],
     featured: true,
     status: 'open',
     daysAgo: 3,
@@ -112,7 +110,6 @@ export const jobs: SeedJob[] = [
     requiredSkills: ['Node.js', 'TypeScript', 'MongoDB'],
     niceToHaveSkills: ['Kafka', 'AWS'],
     languages: [['English', 'fluent']],
-    salary: [45000, 60000],
     status: 'open',
     daysAgo: 12,
     summary: 'Design APIs and data pipelines that process millions of sales events a day.',
@@ -130,7 +127,6 @@ export const jobs: SeedJob[] = [
     requiredSkills: ['SQL', 'Python', 'Data analysis'],
     niceToHaveSkills: ['dbt', 'Tableau'],
     languages: [['French', 'fluent'], ['English', 'conversational']],
-    salary: [42000, 52000],
     featured: true,
     status: 'open',
     daysAgo: 6,
@@ -149,7 +145,6 @@ export const jobs: SeedJob[] = [
     requiredSkills: ['AWS', 'Kubernetes', 'Terraform'],
     niceToHaveSkills: ['Go'],
     languages: [['English', 'fluent']],
-    salary: [550, 700],
     status: 'pending',
     daysAgo: 1,
     summary: 'A 6-month contract to move our infrastructure to Kubernetes.',
@@ -167,7 +162,6 @@ export const jobs: SeedJob[] = [
     requiredSkills: ['Python', 'Machine learning', 'PyTorch'],
     niceToHaveSkills: ['MLOps', 'Healthcare data'],
     languages: [['English', 'fluent']],
-    salary: [75000, 95000],
     featured: true,
     status: 'open',
     daysAgo: 2,
@@ -187,7 +181,6 @@ export const jobs: SeedJob[] = [
     requiredSkills: ['Product management', 'User research', 'Roadmapping'],
     niceToHaveSkills: ['Healthcare'],
     languages: [['English', 'fluent'], ['Dutch', 'basic']],
-    salary: [80000, 100000],
     status: 'open',
     daysAgo: 20,
     summary: 'Lead the product for our clinician dashboard.',
@@ -222,7 +215,6 @@ export const jobs: SeedJob[] = [
     requiredSkills: ['Figma', 'Product design', 'Prototyping'],
     niceToHaveSkills: ['Design systems', 'User research'],
     languages: [['English', 'fluent'], ['Portuguese', 'conversational']],
-    salary: [50000, 65000],
     status: 'open',
     daysAgo: 9,
     coverLetterPolicy: 'optional',
@@ -259,7 +251,6 @@ export const jobs: SeedJob[] = [
     requiredSkills: ['Growth', 'B2B marketing', 'Analytics'],
     niceToHaveSkills: ['SEO', 'HubSpot'],
     languages: [['French', 'native'], ['English', 'fluent']],
-    salary: [60000, 75000],
     status: 'open',
     daysAgo: 30,
     summary: "Grow Maven Studio's pipeline of new clients.",

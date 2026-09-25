@@ -32,7 +32,7 @@ export function FeaturedJobs() {
             : jobs.map((job, i) => (
                 <Reveal key={job.id} delay={Math.min(i, 5) * 0.06} className="h-full">
                   {/* Fallback jobs (API unavailable) have no detail page. */}
-                  <JobCard job={job} href={isFallback ? '/jobs' : undefined} showSalary={false} />
+                  <JobCard job={job} href={isFallback ? '/jobs' : undefined} />
                 </Reveal>
               ))}
         </div>

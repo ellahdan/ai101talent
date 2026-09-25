@@ -13,6 +13,7 @@ const contactRequestSchema = new Schema(
     message: { type: String, required: true, maxlength: 5000 },
     forwardedMessage: { type: String, maxlength: 5000 },
     proposedTimes: [Date],
+    // Legacy: salaries are no longer collected or returned. Kept so old documents stay valid.
     salaryRange: salaryRangeSchema,
     status: { type: String, enum: REQUEST_STATUSES, default: 'pending_admin_review', index: true },
     history: [

@@ -18,12 +18,6 @@ type LeanJob = Record<string, any> & { _id: Types.ObjectId; companyId: Populated
 
 const orUndefined = <T>(v: T | null | undefined) => (v == null ? undefined : v)
 
-function salary(job: LeanJob): JobSummary['salaryRange'] {
-  const s = job.salaryRange
-  if (!s || (s.min == null && s.max == null)) return undefined
-  return { min: orUndefined(s.min), max: orUndefined(s.max), currency: s.currency ?? 'EUR' }
-}
-
 export function toJobSummary(job: LeanJob): JobSummary {
   return {
     id: String(job._id),
@@ -34,7 +28,6 @@ export function toJobSummary(job: LeanJob): JobSummary {
     contractType: job.contractType,
     seniority: job.seniority,
     requiredSkills: job.requiredSkills ?? [],
-    salaryRange: salary(job),
     featured: Boolean(job.featured),
     createdAt: (job.publishedAt ?? job.createdAt).toISOString(),
   }
@@ -73,10 +66,9 @@ export function toManagedJob(job: LeanJob, applicationCount: number): ManagedJob
   }
 }
 
-/** Maps validated job input to document fields (an empty salary range is dropped). */
+/** Maps validated job input to document fields. Salaries are no longer used: saving a job clears any old value. */
 export function jobFields(input: z.infer<typeof jobInputSchema>) {
-  const s = input.salaryRange
-  return { ...input, salaryRange: s && (s.min != null || s.max != null) ? s : undefined }
+  return { ...input, salaryRange: undefined }
 }
 
 /** Number of applications per job id. */

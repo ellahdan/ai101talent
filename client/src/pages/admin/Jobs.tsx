@@ -9,7 +9,7 @@ import { Modal } from '@/components/ui/modal'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { useAdminJobs, useAdminSummary, useSetFeatured, useSetJobStatus } from '@/hooks/useAdmin'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { formatSalary, jobMeta, timeAgo } from '@/lib/format'
+import { jobMeta, timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { JOB_STATUSES, type JobStatus, type ManagedJob } from '@/types'
 import { StatusTabs } from './StatusTabs'
@@ -71,7 +71,7 @@ export default function AdminJobs() {
                 <div className="min-w-0">
                   <p className="font-semibold">{job.title}</p>
                   <p className="text-sm text-foreground/60">{job.company.name} · {job.location} · {jobMeta(job)}</p>
-                  <p className="mt-1 text-xs text-foreground/50">{formatSalary(job.salaryRange)} · {t.meta(job.applicationCount, timeAgo(job.updatedAt))}</p>
+                  <p className="mt-1 text-xs text-foreground/50">{t.meta(job.applicationCount, timeAgo(job.updatedAt))}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {job.featured && <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-400/15 dark:text-amber-200"><Star size={12} aria-hidden /> {t.featured}</span>}

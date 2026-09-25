@@ -50,7 +50,6 @@ export const shortlistNameSchema = z.object({ name: z.string().trim().min(1, 'Na
 export const shortlistCandidateSchema = z.object({ candidateId: objectIdSchema })
 
 const optionalText = (max: number) => z.string().trim().max(max).optional().transform((v) => v || undefined)
-const money = z.coerce.number().int().min(0).max(10_000_000).optional()
 
 export const createRequestSchema = z
   .object({
@@ -63,10 +62,6 @@ export const createRequestSchema = z
       .min(1, 'Propose at least one interview time')
       .max(5)
       .refine((dates) => dates.every((d) => d.getTime() > Date.now()), 'Proposed times must be in the future'),
-    salaryRange: z
-      .object({ min: money, max: money, currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).default('EUR') })
-      .refine((s) => s.min == null || s.max == null || s.min <= s.max, { message: 'The minimum must not exceed the maximum', path: ['max'] })
-      .optional(),
   })
   .refine((r) => r.jobId || r.roleTitle, { message: 'Choose one of your positions or enter a role title', path: ['roleTitle'] })
 

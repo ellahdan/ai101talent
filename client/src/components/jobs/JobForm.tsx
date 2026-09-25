@@ -23,7 +23,6 @@ export const emptyJob: JobFormValues = {
   requiredSkills: [],
   niceToHaveSkills: [],
   languages: [{ name: 'English', proficiency: 'fluent' }],
-  salaryRange: { min: undefined, max: undefined, currency: 'EUR' },
   coverLetterPolicy: 'optional',
   companyId: '',
   featured: false,
@@ -39,7 +38,6 @@ export const jobToForm = (j: ManagedJob): JobFormValues => ({
   requiredSkills: j.requiredSkills,
   niceToHaveSkills: j.niceToHaveSkills,
   languages: j.languages,
-  salaryRange: { min: j.salaryRange?.min, max: j.salaryRange?.max, currency: j.salaryRange?.currency ?? 'EUR' },
   coverLetterPolicy: j.coverLetterPolicy,
   companyId: j.company.id,
   featured: j.featured,
@@ -132,18 +130,7 @@ export function JobForm({ defaultValues, onSubmit, submitting, error, submitLabe
         </div>
       </Card>
 
-      <Card title={t.salaryAndApplication}>
-        <div className="grid gap-5 sm:grid-cols-[1fr_1fr_120px]">
-          <Field label={t.salaryFrom} optional error={errors.salaryRange?.min?.message}>
-            {(ids) => <Input {...ids} type="number" min={0} inputMode="numeric" {...register('salaryRange.min', { setValueAs: (v) => (v === '' ? undefined : Number(v)) })} />}
-          </Field>
-          <Field label={t.salaryTo} optional error={errors.salaryRange?.max?.message}>
-            {(ids) => <Input {...ids} type="number" min={0} inputMode="numeric" {...register('salaryRange.max', { setValueAs: (v) => (v === '' ? undefined : Number(v)) })} />}
-          </Field>
-          <Field label={t.currency} error={errors.salaryRange?.currency?.message}>
-            {(ids) => <Input {...ids} maxLength={3} className="uppercase" {...register('salaryRange.currency')} />}
-          </Field>
-        </div>
+      <Card title={t.application}>
         <fieldset>
           <legend className="text-sm font-semibold">{t.coverLetter}</legend>
           <div className="mt-2.5 grid gap-2 sm:grid-cols-3">

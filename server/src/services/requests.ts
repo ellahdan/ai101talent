@@ -3,14 +3,18 @@ import type { Types } from 'mongoose'
 import { audit } from '../lib/audit.js'
 import { invalidateCache } from '../lib/cache.js'
 import { badRequest } from '../lib/errors.js'
-import type { ContactRequestDoc } from '../models/index.js'
+import { Company, ContactRequest, type ContactRequestDoc } from '../models/index.js'
+import { notifyAdmins } from './notifications.js'
 import type { AdminRequest, CompanyRequest, RequestMessage, RequestStatus, Role, SharedDetails } from '../types/index.js'
 
 /**
  * Allowed status changes. Every contact goes company → admin review → candidate → admin introduction.
  * Candidate decisions (accept/decline) are made on the candidate endpoints; everything else is the admin's.
+ * Requests from a company that is not approved yet (or hasn't confirmed its email) wait in
+ * awaiting_company_approval and enter the review queue automatically once it is.
  */
 export const TRANSITIONS: Record<RequestStatus, RequestStatus[]> = {
+  awaiting_company_approval: ['pending_admin_review', 'closed'],
   pending_admin_review: ['forwarded_to_candidate', 'rejected', 'info_requested', 'closed'],
   info_requested: ['pending_admin_review', 'forwarded_to_candidate', 'rejected', 'closed'],
   forwarded_to_candidate: ['candidate_accepted', 'candidate_declined', 'closed'],
@@ -25,20 +29,45 @@ export const TRANSITIONS: Record<RequestStatus, RequestStatus[]> = {
 }
 
 /** Statuses in which a company already has a live request for a candidate (no duplicates allowed). */
-export const ACTIVE_STATUSES: RequestStatus[] = ['pending_admin_review', 'info_requested', 'forwarded_to_candidate', 'candidate_accepted', 'introduced', 'interviewing']
+export const ACTIVE_STATUSES: RequestStatus[] = ['awaiting_company_approval', 'pending_admin_review', 'info_requested', 'forwarded_to_candidate', 'candidate_accepted', 'introduced', 'interviewing']
 
-/** Validates and applies a status change, records it in the history and the audit log. */
-export async function transition(req: Request, request: ContactRequestDoc, to: RequestStatus, note?: string) {
+/** Validates and applies a status change, records it in the history and the audit log. Pass null for system changes. */
+export async function transition(req: Request | null, request: ContactRequestDoc, to: RequestStatus, note?: string) {
   const from = request.status
   if (!TRANSITIONS[from].includes(to)) throw badRequest(`A request that is "${from.replace(/_/g, ' ')}" can't move to "${to.replace(/_/g, ' ')}"`, 'INVALID_TRANSITION')
   request.status = to
-  request.history.push({ status: to, by: req.user!.id as unknown as Types.ObjectId, note, at: new Date() })
+  request.history.push({ status: to, by: req?.user?.id as unknown as Types.ObjectId | undefined, note, at: new Date() })
   if (to === 'hired') {
     request.hiredAt = new Date()
     invalidateCache('public:stats')
   }
   await request.save()
   await audit(req, { action: 'request.status_changed', targetType: 'ContactRequest', targetId: request._id, meta: { from, to, note } })
+}
+
+/**
+ * Once a company is approved and its email confirmed, its waiting requests enter the admin review queue.
+ * Safe to call at any time: does nothing unless both conditions hold.
+ */
+export async function releaseWaitingRequests(req: Request | null, companyId: Types.ObjectId | string, emailVerified: boolean) {
+  const company = await Company.findById(companyId).select('name status').lean()
+  if (!company || company.status !== 'approved' || !emailVerified) return 0
+  const waiting = await ContactRequest.find({ companyId, status: 'awaiting_company_approval' })
+  for (const request of waiting) await transition(req, request, 'pending_admin_review', 'Company approved')
+  if (waiting.length) {
+    await notifyAdmins(`${waiting.length} contact request${waiting.length === 1 ? '' : 's'} from ${company.name} ready for review`, [`${company.name} is now approved, so its saved requests are in the review queue.`], {
+      label: 'Open the queue',
+      path: '/admin/requests',
+    })
+  }
+  return waiting.length
+}
+
+/** Closes a company's waiting requests (the company was rejected or suspended). */
+export async function closeWaitingRequests(req: Request | null, companyId: Types.ObjectId | string, note: string) {
+  const waiting = await ContactRequest.find({ companyId, status: 'awaiting_company_approval' })
+  for (const request of waiting) await transition(req, request, 'closed', note)
+  return waiting.length
 }
 
 export function pushMessage(request: ContactRequestDoc, thread: 'company' | 'candidate', from: string, fromRole: Role, text: string) {
@@ -51,10 +80,6 @@ export function pushMessage(request: ContactRequestDoc, thread: 'company' | 'can
 const iso = (d?: Date | null) => d?.toISOString()
 const orUndefined = <T>(v: T | null | undefined) => (v == null ? undefined : v)
 
-function salary(r: any) {
-  const s = r.salaryRange
-  return s && (s.min != null || s.max != null) ? { min: orUndefined(s.min), max: orUndefined(s.max), currency: s.currency ?? 'EUR' } : undefined
-}
 const messages = (r: any, thread: 'company' | 'candidate'): RequestMessage[] =>
   r.messages.filter((m: any) => m.thread === thread).map((m: any) => ({ id: String(m._id), fromRole: m.fromRole, text: m.text, at: m.at.toISOString() }))
 
@@ -73,7 +98,6 @@ export function toCompanyRequest(r: any): CompanyRequest {
     roleTitle: orUndefined(r.roleTitle),
     message: r.message,
     proposedTimes: (r.proposedTimes ?? []).map((d: Date) => d.toISOString()),
-    salaryRange: salary(r),
     rejectionReason: orUndefined(r.rejectionReason),
     messages: messages(r, 'company'),
     history: r.history.map((h: any) => ({ status: h.status, at: h.at.toISOString() })),
@@ -100,7 +124,6 @@ export function toAdminRequest(r: any, actorRoles: Map<string, Role>): AdminRequ
     message: r.message,
     forwardedMessage: orUndefined(r.forwardedMessage),
     proposedTimes: (r.proposedTimes ?? []).map((d: Date) => d.toISOString()),
-    salaryRange: salary(r),
     candidateNote: orUndefined(r.candidateNote),
     rejectionReason: orUndefined(r.rejectionReason),
     companyMessages: messages(r, 'company'),

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Building2, CalendarClock, Inbox, Send, ShieldCheck, Wallet } from 'lucide-react'
+import { Building2, CalendarClock, Inbox, Send, ShieldCheck } from 'lucide-react'
 import { EmptyState, PageHeader } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/button'
 import { Alert, Field, Spinner, Textarea } from '@/components/ui/form'
@@ -9,7 +9,7 @@ import { Modal } from '@/components/ui/modal'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { useMyProfile, useMyRequests, useRespondToRequest, useSendRequestMessage } from '@/hooks/useCandidate'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { formatDateTime, formatSalary } from '@/lib/format'
+import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { CandidateRequest } from '@/types'
 import { NoProfile } from './CandidateLayout'
@@ -105,12 +105,6 @@ function RequestCard({ request: r }: { request: CandidateRequest }) {
             <div className="flex gap-2.5">
               <dt><CalendarClock size={16} className="mt-0.5 text-foreground/50" aria-label={t.proposedTimes} /></dt>
               <dd>{r.proposedTimes.map(dateTime).join(' · ')}</dd>
-            </div>
-          )}
-          {r.salaryRange && (
-            <div className="flex gap-2.5">
-              <dt><Wallet size={16} className="mt-0.5 text-foreground/50" aria-label={t.salary} /></dt>
-              <dd>{formatSalary(r.salaryRange)}</dd>
             </div>
           )}
           {r.interviewDate && (

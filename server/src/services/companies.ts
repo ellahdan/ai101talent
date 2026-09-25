@@ -35,6 +35,17 @@ export async function myCompany(req: Request) {
  * Allows only verified, admin-approved companies (posting jobs, searching talent, contacting candidates).
  * Puts the company document on res.locals.company.
  */
+/**
+ * Allows any company that is not suspended, approved or not. Used for contact requests, which wait
+ * until the company is approved. Puts the company document on res.locals.company.
+ */
+export const requireActiveCompany: RequestHandler = async (req, res, next) => {
+  const company = await myCompany(req)
+  if (company.status === 'suspended') return next(forbidden('Your company account is suspended. Contact us for details.', 'COMPANY_SUSPENDED'))
+  res.locals.company = company
+  next()
+}
+
 export const requireApprovedCompany: RequestHandler = async (req, res, next) => {
   if (!req.user?.isVerified) return next(forbidden('Please verify your email address first', 'EMAIL_NOT_VERIFIED'))
   const company = await myCompany(req)

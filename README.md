@@ -293,7 +293,10 @@ Suspending a company hides all its positions from the public job board.
 
 ### Talent search and shortlists
 
-The talent search is **public**: visitors can browse and filter profiles at `/talent` (and open `/talent/:id`) without an account. When a guest clicks "Request to speak" or "Save", they are asked to register a company (or log in). Approved companies are redirected to the same search inside their dashboard (`/company/search`), where results also show their shortlists and request statuses. Contact requests and shortlists still require a verified, approved company.
+The talent search is **public**: visitors can browse and filter profiles at `/talent` (and open `/talent/:id`) without an account. Approved companies are redirected to the same search inside their dashboard (`/company/search`), where results also show their shortlists and request statuses.
+
+- **Request to speak** works before having an account: a guest fills in the same form (role title, message, interview times). When they click Send, the request is saved on the device (`localStorage`, key `ai101-request-draft`) and they are asked to create a company account or log in. As soon as they are signed in as a company, the draft is sent automatically (`DraftRequestSender`) and removed. A company that is not approved yet gets the request stored as `awaiting_company_approval` (see below).
+- **Save to shortlist** requires an approved company; guests are asked to register.
 
 Everyone only ever sees **anonymized** candidates who are visible and gave consent: applicant number, headline, years of experience, skills, tools, languages, location, availability and preferred work mode. Name, email, phone, links, employer names, CV and CV text are never returned. There are deliberately no filters on age, gender, marital status, nationality, religion or photos.
 
@@ -312,12 +315,14 @@ Search is limited to 150 requests per 15 minutes per logged-in account, and 90 p
 Companies never contact candidates directly. Every request follows this flow, and every change is timestamped in the request's `history` and in the audit log:
 
 ```
-company "Request to speak" → pending_admin_review ─┬→ info_requested ⇄ (company replies) → pending_admin_review
-                                                    ├→ rejected (reason emailed to the company)
-                                                    └→ forwarded_to_candidate (admin may edit the message)
-                                                           ├→ candidate_declined → closed
-                                                           └→ candidate_accepted → introduced (admin picks what to share)
-                                                                                     → interviewing → hired | not_selected → closed
+company "Request to speak" ─┬→ (company not approved yet) awaiting_company_approval → pending_admin_review once approved and verified
+                             │                                                   (→ closed if the company is rejected or suspended)
+                             └→ pending_admin_review ─┬→ info_requested ⇄ (company replies) → pending_admin_review
+                                                      ├→ rejected (reason emailed to the company)
+                                                      └→ forwarded_to_candidate (admin may edit the message)
+                                                             ├→ candidate_declined → closed
+                                                             └→ candidate_accepted → introduced (admin picks what to share)
+                                                                                       → interviewing → hired | not_selected → closed
 ```
 
 - Two separate threads per request: admin ↔ company and admin ↔ candidate. Companies and candidates never see each other's thread.
@@ -328,7 +333,7 @@ company "Request to speak" → pending_admin_review ─┬→ info_requested ⇄
 
 | Endpoint | Who | Description |
 | --- | --- | --- |
-| `POST /api/requests` | company | Request to speak (position or role title, message, proposed times, optional salary) |
+| `POST /api/requests` | company | Request to speak (position or role title, message, proposed times). Open to any company that is not suspended: requests from companies not approved yet (or with an unconfirmed email) are stored as `awaiting_company_approval` and move to `pending_admin_review` once the company is approved and verified; rejecting or suspending the company closes them |
 | `GET /api/requests/company` · `GET /api/requests/company/:id` | company | Own requests: status, admin messages, shared details |
 | `POST /api/requests/company/:id/messages` | company | Message the admin team (answers an info request) |
 | `GET /api/requests/company/:id/cv` | company | Signed CV link, only if shared (logged) |

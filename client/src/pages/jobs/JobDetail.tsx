@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, BriefcaseBusiness, Building2, Clock, ExternalLin
 import { buttonVariants } from '@/components/ui/button'
 import { useJob } from '@/hooks/useJobs'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { contractTypeLabel, formatSalary, proficiencyLabel, seniorityLabel, timeAgo, workModeLabel } from '@/lib/format'
+import { contractTypeLabel, proficiencyLabel, seniorityLabel, timeAgo, workModeLabel } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { CoverLetterPolicy } from '@/types'
 import { defineText, useT } from '@/i18n'
@@ -20,7 +20,6 @@ const text = defineText(
     skills: 'Skills',
     required: 'Required',
     niceToHave: 'Nice to have',
-    salary: 'Salary',
     languages: 'Languages',
     coverLetter: 'Cover letter',
     coverLetterPolicy: { required: 'Cover letter required', optional: 'Cover letter optional', none: 'No cover letter needed' } satisfies Record<CoverLetterPolicy, string>,
@@ -41,7 +40,6 @@ const text = defineText(
     skills: 'Fähigkeiten',
     required: 'Erforderlich',
     niceToHave: 'Wünschenswert',
-    salary: 'Gehalt',
     languages: 'Sprachen',
     coverLetter: 'Anschreiben',
     coverLetterPolicy: { required: 'Anschreiben erforderlich', optional: 'Anschreiben optional', none: 'Kein Anschreiben nötig' },
@@ -126,9 +124,7 @@ export default function JobDetail() {
 
           <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
             <div className="rounded-lg border border-foreground/12 bg-surface p-6">
-              <p className="text-xs font-semibold uppercase tracking-[.14em] text-foreground/50">{t.salary}</p>
-              <p className="mt-1 text-2xl font-medium tracking-[-.03em]">{formatSalary(job.salaryRange)}</p>
-              <dl className="mt-5 space-y-3 border-t border-foreground/10 pt-5 text-sm">
+              <dl className="space-y-3 text-sm">
                 {job.languages.length > 0 && (
                   <div className="flex gap-2.5">
                     <dt><Languages size={16} className="mt-0.5 text-foreground/50" aria-label={t.languages} /></dt>

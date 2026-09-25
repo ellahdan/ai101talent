@@ -175,7 +175,6 @@ async function main() {
       requiredSkills: j.requiredSkills,
       niceToHaveSkills: j.niceToHaveSkills,
       languages: j.languages.map(([name, proficiency]) => ({ name, proficiency })),
-      salaryRange: j.salary ? { min: j.salary[0], max: j.salary[1], currency: 'EUR' } : undefined,
       coverLetterPolicy: j.coverLetterPolicy ?? 'optional',
       featured: Boolean(j.featured),
       status: j.status,
@@ -280,7 +279,7 @@ async function main() {
     const at = (k: number) => daysAgo(start - k)
     const actorFor = (s: RequestStatus) => (s === 'pending_admin_review' ? company.user._id : s === 'candidate_accepted' || s === 'candidate_declined' ? candUser._id : admin._id)
     const noteFor: Partial<Record<RequestStatus, string>> = {
-      info_requested: 'Asked the company to confirm the salary range and remote policy.',
+      info_requested: 'Asked the company to confirm the start date and remote policy.',
       rejected: 'Message too vague and no role details provided.',
       forwarded_to_candidate: 'Forwarded with a lightly edited message.',
       candidate_accepted: 'Happy to talk, weekday afternoons work best.',
@@ -292,7 +291,7 @@ async function main() {
 
     const messages: { thread: 'company' | 'candidate'; from: Types.ObjectId; fromRole: 'admin' | 'company' | 'candidate'; to: 'admin' | 'company' | 'candidate'; text: string; at: Date }[] = []
     if (plan.status === 'info_requested') {
-      messages.push({ thread: 'company', from: admin._id, fromRole: 'admin', to: 'company', text: 'Thanks for your request. Could you confirm the salary range and whether the role can be fully remote?', at: at(1) })
+      messages.push({ thread: 'company', from: admin._id, fromRole: 'admin', to: 'company', text: 'Thanks for your request. Could you confirm the start date and whether the role can be fully remote?', at: at(1) })
     }
     if (path.includes('forwarded_to_candidate')) {
       messages.push({ thread: 'candidate', from: admin._id, fromRole: 'admin', to: 'candidate', text: `${company.doc.name} would like to speak with you. Let us know if you're interested and we'll arrange an introduction.`, at: at(1) })
@@ -315,7 +314,6 @@ async function main() {
       message: plan.message,
       forwardedMessage: path.includes('forwarded_to_candidate') ? plan.message : undefined,
       proposedTimes: [daysAgo(-3), daysAgo(-4)],
-      salaryRange: plan.job && jobs.find((j) => j.key === plan.job)!.salary ? { min: jobs.find((j) => j.key === plan.job)!.salary![0], max: jobs.find((j) => j.key === plan.job)!.salary![1], currency: 'EUR' } : undefined,
       status: plan.status,
       history: path.map((s, k) => ({ status: s, by: actorFor(s), note: noteFor[s], at: at(k) })),
       messages,

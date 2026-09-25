@@ -27,10 +27,7 @@ export const jobFormText = defineText(
     level: (n: number) => `Required level for language ${n}`,
     removeLanguage: (n: number) => `Remove language ${n}`,
     addLanguage: 'Add a language',
-    salaryAndApplication: 'Salary and application',
-    salaryFrom: 'Salary from',
-    salaryTo: 'Salary to',
-    currency: 'Currency',
+    application: 'Application',
     coverLetter: 'Cover letter',
     policy: {
       optional: ['Optional', 'Candidates may add one'],
@@ -65,10 +62,7 @@ export const jobFormText = defineText(
     level: (n: number) => `Erforderliches Niveau für Sprache ${n}`,
     removeLanguage: (n: number) => `Sprache ${n} entfernen`,
     addLanguage: 'Sprache hinzufügen',
-    salaryAndApplication: 'Gehalt und Bewerbung',
-    salaryFrom: 'Gehalt von',
-    salaryTo: 'Gehalt bis',
-    currency: 'Währung',
+    application: 'Bewerbung',
     coverLetter: 'Anschreiben',
     policy: {
       optional: ['Optional', 'Kandidaten können eines beifügen'],

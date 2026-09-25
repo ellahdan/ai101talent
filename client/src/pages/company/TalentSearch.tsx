@@ -11,7 +11,7 @@ import { TalentCard, TalentCardSkeleton } from '@/components/talent/TalentCard'
 import { LanguageAdder } from '@/components/talent/LanguageAdder'
 import { ShortlistDialog } from '@/components/talent/ShortlistDialog'
 import { RequestDialog } from '@/components/talent/RequestDialog'
-import { ContactGate } from '@/components/talent/ContactGate'
+import { ContactGate, useRequestMode } from '@/components/talent/ContactGate'
 import { useTalentFacets, useTalentSearch } from '@/hooks/useTalent'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { proficiencyLabel, workModeLabel } from '@/lib/format'
@@ -41,8 +41,8 @@ export default function TalentSearch() {
 type Dialog = { candidate: AnonymizedCandidate; kind: 'save' | 'request' }
 
 /**
- * Anonymized talent search with filters. `canAct` is false for guests and companies awaiting approval:
- * their Save / Request buttons open a prompt to register or wait for approval instead.
+ * Anonymized talent search with filters. `canAct` (shortlists) is false for guests and companies awaiting
+ * approval. "Request to speak" is open to guests and unapproved companies too (see useRequestMode).
  */
 export function TalentSearchView({ variant, canAct }: { variant: 'company' | 'public'; canAct: boolean }) {
   const t = useT(talentText).search
@@ -53,6 +53,7 @@ export function TalentSearchView({ variant, canAct }: { variant: 'company' | 'pu
   const { data, isPending, isError, error, refetch, isPlaceholderData } = useTalentSearch(params)
   const facets = useTalentFacets()
   const isPublic = variant === 'public'
+  const requestMode = useRequestMode()
   const profileHref = (id: string) => (isPublic ? `/talent/${id}` : `/company/candidates/${id}`)
 
   const get = (k: string) => params.get(k) ?? ''
@@ -209,9 +210,9 @@ export function TalentSearchView({ variant, canAct }: { variant: 'company' | 'pu
         </section>
       </div>
 
-      {dialog && !canAct && <ContactGate candidate={dialog.candidate} reason={dialog.kind === 'save' ? 'save' : 'contact'} onClose={() => setDialog(null)} />}
-      {dialog && canAct && dialog.kind === 'save' && <ShortlistDialog candidate={dialog.candidate} onClose={() => setDialog(null)} />}
-      {dialog && canAct && dialog.kind === 'request' && <RequestDialog candidate={dialog.candidate} onClose={() => setDialog(null)} />}
+      {dialog?.kind === 'save' && (canAct ? <ShortlistDialog candidate={dialog.candidate} onClose={() => setDialog(null)} /> : <ContactGate candidate={dialog.candidate} reason="save" onClose={() => setDialog(null)} />)}
+      {dialog?.kind === 'request' &&
+        (requestMode === 'blocked' ? <ContactGate candidate={dialog.candidate} reason="contact" onClose={() => setDialog(null)} /> : <RequestDialog candidate={dialog.candidate} mode={requestMode} onClose={() => setDialog(null)} />)}
     </>
   )
 }

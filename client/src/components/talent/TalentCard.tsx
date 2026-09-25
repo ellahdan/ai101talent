@@ -9,7 +9,7 @@ import { common } from '@/i18n/common'
 import { talentText } from '@/i18n/talent'
 
 /** Statuses where the company already has a live request (can't send another). */
-export const ACTIVE_REQUEST: RequestStatus[] = ['pending_admin_review', 'info_requested', 'forwarded_to_candidate', 'candidate_accepted', 'introduced', 'interviewing']
+export const ACTIVE_REQUEST: RequestStatus[] = ['awaiting_company_approval', 'pending_admin_review', 'info_requested', 'forwarded_to_candidate', 'candidate_accepted', 'introduced', 'interviewing']
 
 /** Availability in the current language (callers also use `useT`, so they re-render on change). */
 export const availabilityText = (c: Pick<AnonymizedCandidate, 'availability' | 'noticePeriodWeeks'>) =>

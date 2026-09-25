@@ -52,7 +52,7 @@ export const common = defineText(
     approval: {
       suspended: 'Your company account is suspended, so posting and contacting candidates are unavailable. Contact us for details.',
       unverified: 'Confirm your email address to continue. We sent you a link when you registered (use the banner above to resend it).',
-      pending: "Our team is reviewing your company. You'll be able to post positions and contact candidates once it's approved. We'll email you.",
+      pending: "Our team is reviewing your company. You'll be able to post positions and keep shortlists once it's approved, and we'll email you. You can already send contact requests: they're saved and reviewed once your company is approved.",
     },
     actions: {
       back: 'Back',
@@ -126,9 +126,6 @@ export const common = defineText(
     yearsTiny: (n: number) => `${n}y`,
     yearsOfExperience: (n: number) => `${n} ${n === 1 ? 'year' : 'years'} of experience`,
     present: 'present',
-    salaryOnRequest: 'Salary on request',
-    salaryFrom: (v: string) => `From ${v}`,
-    salaryUpTo: (v: string) => `Up to ${v}`,
     today: 'today',
     posted: (ago: string) => `Posted ${ago}`,
     status: {
@@ -139,6 +136,7 @@ export const common = defineText(
       offered: 'Offered',
       hired: 'Hired',
       rejected: 'Not selected',
+      awaiting_company_approval: 'Awaiting company approval',
       pending_admin_review: 'Awaiting review',
       info_requested: 'Info requested',
       forwarded_to_candidate: 'Forwarded to candidate',
@@ -207,7 +205,7 @@ export const common = defineText(
     approval: {
       suspended: 'Ihr Unternehmenskonto ist gesperrt. Stellen veröffentlichen und Kandidaten kontaktieren ist daher nicht möglich. Kontaktieren Sie uns für Details.',
       unverified: 'Bestätigen Sie Ihre E-Mail-Adresse, um fortzufahren. Wir haben Ihnen bei der Registrierung einen Link gesendet (über das Banner oben können Sie ihn erneut anfordern).',
-      pending: 'Unser Team prüft Ihr Unternehmen. Sobald es freigegeben ist, können Sie Stellen veröffentlichen und Kandidaten kontaktieren. Wir benachrichtigen Sie per E-Mail.',
+      pending: 'Unser Team prüft Ihr Unternehmen. Sobald es freigegeben ist, können Sie Stellen veröffentlichen und Merklisten führen – wir benachrichtigen Sie per E-Mail. Kontaktanfragen können Sie schon jetzt senden: Sie werden gespeichert und nach der Freigabe geprüft.',
     },
     actions: {
       back: 'Zurück',
@@ -281,9 +279,6 @@ export const common = defineText(
     yearsTiny: (n: number) => `${n} J.`,
     yearsOfExperience: (n: number) => `${n} ${n === 1 ? 'Jahr' : 'Jahre'} Berufserfahrung`,
     present: 'heute',
-    salaryOnRequest: 'Gehalt auf Anfrage',
-    salaryFrom: (v: string) => `Ab ${v}`,
-    salaryUpTo: (v: string) => `Bis ${v}`,
     today: 'heute',
     posted: (ago: string) => `Veröffentlicht ${ago}`,
     status: {
@@ -294,6 +289,7 @@ export const common = defineText(
       offered: 'Angebot erhalten',
       hired: 'Eingestellt',
       rejected: 'Nicht ausgewählt',
+      awaiting_company_approval: 'Wartet auf Freigabe des Unternehmens',
       pending_admin_review: 'Wird geprüft',
       info_requested: 'Infos angefragt',
       forwarded_to_candidate: 'An Kandidat weitergeleitet',

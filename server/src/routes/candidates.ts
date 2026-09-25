@@ -190,7 +190,7 @@ candidatesRouter.get('/me/export', candidateOnly, async (req, res) => {
         Application.find({ candidateId: candidate._id }).populate('jobId', 'title location').lean(),
         ContactRequest.find({ candidateId: candidate._id, 'history.status': 'forwarded_to_candidate' })
           .populate('companyId', 'name')
-          .select('companyId roleTitle forwardedMessage proposedTimes salaryRange status history candidateNote interviewDate createdAt messages')
+          .select('companyId roleTitle forwardedMessage proposedTimes status history candidateNote interviewDate createdAt messages')
           .lean(),
       ])
     : [[], []]

@@ -11,6 +11,18 @@ import { cn } from '@/lib/utils'
 import type { AnonymizedCandidate } from '@/types'
 
 /**
+ * How "Request to speak" behaves for the current visitor:
+ * company – any company that is not suspended sends it (unapproved companies' requests wait for approval);
+ * guest – fills in the form, then is asked to create an account or log in;
+ * blocked – candidate/admin accounts and suspended companies get the explanation in ContactGate.
+ */
+export function useRequestMode(): 'company' | 'guest' | 'blocked' {
+  const { data: me } = useMe()
+  if (!me) return 'guest'
+  return me.role === 'company' && me.company?.status !== 'suspended' ? 'company' : 'blocked'
+}
+
+/**
  * Shown instead of the contact / shortlist dialogs to anyone who can browse talent but not act on it:
  * guests are asked to register a company (or log in), companies awaiting approval see why they have to wait.
  */

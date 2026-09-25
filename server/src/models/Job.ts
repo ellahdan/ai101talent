@@ -15,6 +15,7 @@ const jobSchema = new Schema(
     requiredSkills: [{ type: String, trim: true, maxlength: 60 }],
     niceToHaveSkills: [{ type: String, trim: true, maxlength: 60 }],
     languages: [languageSchema],
+    // Legacy: salaries are no longer collected or returned. Kept so old documents stay valid.
     salaryRange: salaryRangeSchema,
     coverLetterPolicy: { type: String, enum: COVER_LETTER_POLICIES, default: 'optional' },
     featured: { type: Boolean, default: false },

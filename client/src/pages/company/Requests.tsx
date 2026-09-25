@@ -1,14 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { CalendarClock, Download, Inbox, Mail, MessageSquareWarning, Phone, Send, UserRound, Wallet } from 'lucide-react'
+import { CalendarClock, Download, Inbox, Mail, MessageSquareWarning, Phone, Send, UserRound } from 'lucide-react'
 import { EmptyState, PageHeader } from '@/components/layout/AppShell'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Alert, Spinner } from '@/components/ui/form'
 import { StatusBadge, statusLabel } from '@/components/ui/status-badge'
 import { openSharedCv, useCompanyRequestMessage, useCompanyRequests } from '@/hooks/useTalent'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { formatDate, formatDateTime, formatSalary, timeAgo } from '@/lib/format'
+import { formatDate, formatDateTime, timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { CompanyRequest } from '@/types'
 import { useT } from '@/i18n'
@@ -74,6 +74,7 @@ function RequestCard({ request: r }: { request: CompanyRequest }) {
           ))}
         </ol>
 
+        {r.status === 'awaiting_company_approval' && <Alert variant="info">{t.waiting}</Alert>}
         {needsReply && <Alert variant="info"><strong>{t.needInfo}</strong> {t.needInfoText}</Alert>}
         {r.status === 'rejected' && r.rejectionReason && <Alert variant="error"><strong>{t.notForwardedLabel}</strong> {r.rejectionReason}</Alert>}
 
@@ -101,7 +102,6 @@ function RequestCard({ request: r }: { request: CompanyRequest }) {
           <div className="space-y-3 border-t border-foreground/10 p-4 text-sm">
             <p className="whitespace-pre-line">{r.message}</p>
             <p className="flex items-center gap-2 text-foreground/65"><CalendarClock size={15} aria-hidden /> {r.proposedTimes.map(dateTime).join(' · ')}</p>
-            {r.salaryRange && <p className="flex items-center gap-2 text-foreground/65"><Wallet size={15} aria-hidden /> {formatSalary(r.salaryRange)}</p>}
           </div>
         </details>
 

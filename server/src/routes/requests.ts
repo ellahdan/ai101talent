@@ -8,7 +8,7 @@ import { contactRequestLimiter } from '../middleware/security.js'
 import { authorize } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { Candidate, ContactRequest, Job, type CompanyDoc } from '../models/index.js'
-import { myCompany, requireApprovedCompany } from '../services/companies.js'
+import { myCompany, requireActiveCompany } from '../services/companies.js'
 import { ACTIVE_STATUSES, pushMessage, toCompanyRequest, transition } from '../services/requests.js'
 import { createRequestSchema } from '../validation/search.js'
 import { notifyAdmins } from '../services/notifications.js'
@@ -45,7 +45,6 @@ function toCandidateRequest(r: any): CandidateRequest {
     job: r.jobId ? { id: String(r.jobId._id), title: r.jobId.title } : undefined,
     message: r.forwardedMessage ?? r.message,
     proposedTimes: (r.proposedTimes ?? []).map((d: Date) => d.toISOString()),
-    salaryRange: r.salaryRange && (r.salaryRange.min != null || r.salaryRange.max != null) ? { min: r.salaryRange.min ?? undefined, max: r.salaryRange.max ?? undefined, currency: r.salaryRange.currency ?? 'EUR' } : undefined,
     candidateNote: r.candidateNote ?? undefined,
     interviewDate: r.interviewDate?.toISOString(),
     messages: r.messages.filter((m: any) => m.thread === 'candidate').map((m: any) => ({ id: String(m._id), fromRole: m.fromRole, text: m.text, at: m.at.toISOString() })),
@@ -110,8 +109,12 @@ async function companyRequest(req: Request, res: Response) {
   return { request, company }
 }
 
-/** "Request to speak": goes to the admin team first, never directly to the candidate. */
-requestsRouter.post('/', authorize('company'), requireApprovedCompany, contactRequestLimiter, validate({ body: createRequestSchema }), async (req, res) => {
+/**
+ * "Request to speak": goes to the admin team first, never directly to the candidate.
+ * Companies not approved yet (or with an unconfirmed email) can send too: the request waits in
+ * awaiting_company_approval and enters the review queue once the company is approved.
+ */
+requestsRouter.post('/', authorize('company'), requireActiveCompany, contactRequestLimiter, validate({ body: createRequestSchema }), async (req, res) => {
   const company: CompanyDoc = res.locals.company
   const input = req.body as z.infer<typeof createRequestSchema>
 
@@ -126,7 +129,8 @@ requestsRouter.post('/', authorize('company'), requireApprovedCompany, contactRe
     throw conflict('You already have an open request for this candidate', 'REQUEST_EXISTS')
   }
 
-  const s = input.salaryRange
+  const ready = company.status === 'approved' && Boolean(req.user!.isVerified)
+  const status: RequestStatus = ready ? 'pending_admin_review' : 'awaiting_company_approval'
   const request = await ContactRequest.create({
     companyId: company._id,
     candidateId: candidate._id,
@@ -134,12 +138,12 @@ requestsRouter.post('/', authorize('company'), requireApprovedCompany, contactRe
     roleTitle: input.roleTitle ?? job?.title,
     message: input.message,
     proposedTimes: input.proposedTimes,
-    salaryRange: s && (s.min != null || s.max != null) ? s : undefined,
-    status: 'pending_admin_review',
-    history: [{ status: 'pending_admin_review', by: req.user!.id, at: new Date() }],
+    status,
+    history: [{ status, by: req.user!.id, at: new Date() }],
   })
-  await audit(req, { action: 'request.created', targetType: 'ContactRequest', targetId: request._id, meta: { to: 'pending_admin_review', applicantNumber: candidate.applicantNumber } })
-  await notifyAdmins(`New contact request: ${company.name} → ${candidate.applicantNumber}`, [`${company.name} would like to speak with ${candidate.applicantNumber}${job ? ` about "${job.title}"` : ''}.`, input.message], {
+  await audit(req, { action: 'request.created', targetType: 'ContactRequest', targetId: request._id, meta: { to: status, applicantNumber: candidate.applicantNumber } })
+  const waitingNote = ready ? [] : [`${company.name} is not approved yet${req.user!.isVerified ? '' : ' and has not confirmed its email'}. The request waits until it is.`]
+  await notifyAdmins(`${ready ? 'New contact request' : 'Contact request waiting for company approval'}: ${company.name} → ${candidate.applicantNumber}`, [`${company.name} would like to speak with ${candidate.applicantNumber}${job ? ` about "${job.title}"` : ''}.`, ...waitingNote, input.message], {
     label: 'Review the request',
     path: `/admin/requests/${request._id}`,
   })

@@ -47,6 +47,7 @@ export const APPLICATION_STATUSES = ['new', 'reviewed', 'shortlisted', 'intervie
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
 
 export const REQUEST_STATUSES = [
+  'awaiting_company_approval',
   'pending_admin_review',
   'info_requested',
   'rejected',
@@ -148,7 +149,6 @@ export interface CandidateRequest {
   job?: { id: string; title: string }
   message: string
   proposedTimes: string[]
-  salaryRange?: SalaryRange
   candidateNote?: string
   interviewDate?: string
   messages: { id: string; fromRole: Role; text: string; at: string }[]
@@ -227,7 +227,6 @@ export interface CompanyRequest {
   roleTitle?: string
   message: string
   proposedTimes: string[]
-  salaryRange?: SalaryRange
   rejectionReason?: string
   messages: RequestMessage[]
   history: { status: RequestStatus; at: string }[]
@@ -248,7 +247,6 @@ export interface AdminRequest {
   message: string
   forwardedMessage?: string
   proposedTimes: string[]
-  salaryRange?: SalaryRange
   candidateNote?: string
   rejectionReason?: string
   companyMessages: RequestMessage[]
@@ -354,12 +352,6 @@ export interface AdminUser {
 
 // ---- Public / landing --------------------------------------------------
 
-export interface SalaryRange {
-  min?: number
-  max?: number
-  currency: string
-}
-
 export interface JobSummary {
   id: string
   title: string
@@ -369,7 +361,6 @@ export interface JobSummary {
   contractType: ContractType
   seniority: Seniority
   requiredSkills: string[]
-  salaryRange?: SalaryRange
   featured: boolean
   createdAt: string
 }

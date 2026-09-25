@@ -14,7 +14,6 @@ const skillList = (min: number, message: string) =>
 /** Visible text of an HTML fragment (for length checks). */
 export const plainText = (html: string) => html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
 
-const money = z.coerce.number().int().min(0).max(10_000_000)
 
 export const jobInputSchema = z.object({
   title: text(3, 140, 'Enter a job title'),
@@ -30,10 +29,6 @@ export const jobInputSchema = z.object({
   requiredSkills: skillList(1, 'Add at least one required skill'),
   niceToHaveSkills: skillList(0, '').default([]),
   languages: z.array(z.object({ name: text(1, 60, 'Enter a language'), proficiency: z.enum(PROFICIENCIES) })).max(10).default([]),
-  salaryRange: z
-    .object({ min: money.optional(), max: money.optional(), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/, 'Use a 3-letter currency code').default('EUR') })
-    .refine((s) => s.min == null || s.max == null || s.min <= s.max, { message: 'The minimum must not exceed the maximum', path: ['max'] })
-    .optional(),
   coverLetterPolicy: z.enum(COVER_LETTER_POLICIES).default('optional'),
 })
 

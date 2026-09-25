@@ -1,4 +1,4 @@
-import type { ContractType, JobSummary, Proficiency, SalaryRange, Seniority, WorkMode } from '@/types'
+import type { ContractType, JobSummary, Proficiency, Seniority, WorkMode } from '@/types'
 import { getLocale, tx } from '@/i18n'
 import { common } from '@/i18n/common'
 
@@ -21,14 +21,6 @@ export const workModeLabel = localized<WorkMode>((c) => c.workMode)
 export const contractTypeLabel = localized<ContractType>((c) => c.contractType)
 export const seniorityLabel = localized<Seniority>((c) => c.seniority)
 export const proficiencyLabel = localized<Proficiency>((c) => c.proficiency)
-
-export function formatSalary(range?: SalaryRange) {
-  const c = tx(common)
-  if (!range || (range.min == null && range.max == null)) return c.salaryOnRequest
-  const fmt = new Intl.NumberFormat(getLocale(), { style: 'currency', currency: range.currency, maximumFractionDigits: 0, notation: 'compact' })
-  if (range.min != null && range.max != null) return `${fmt.format(range.min)}–${fmt.format(range.max)}`
-  return range.min != null ? c.salaryFrom(fmt.format(range.min)) : c.salaryUpTo(fmt.format(range.max!))
-}
 
 export function jobMeta(job: Pick<JobSummary, 'workMode' | 'contractType' | 'seniority'>) {
   return `${workModeLabel[job.workMode]} · ${contractTypeLabel[job.contractType]} · ${seniorityLabel[job.seniority]}`

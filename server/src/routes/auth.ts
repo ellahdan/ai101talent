@@ -9,6 +9,7 @@ import { authLimiter, emailLimiter } from '../middleware/security.js'
 import { validate } from '../middleware/validate.js'
 import { Candidate, Company, User } from '../models/index.js'
 import { notifyAdmins } from '../services/notifications.js'
+import { releaseWaitingRequests } from '../services/requests.js'
 import { sendVerification, toAuthUser } from '../services/users.js'
 import {
   changePasswordSchema,
@@ -84,6 +85,10 @@ authRouter.post('/verify-email', authLimiter, validate({ body: tokenSchema }), a
   user.isVerified = true
   user.emailVerification = undefined
   await user.save()
+  if (user.role === 'company') {
+    const company = await Company.findOne({ userId: user._id }).select('_id').lean()
+    if (company) await releaseWaitingRequests(null, company._id, true)
+  }
   res.json({ data: { verified: true } })
 })
 

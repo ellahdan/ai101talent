@@ -11,6 +11,7 @@ import { authorize } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { Company, ContactRequest, Job, User, type CompanyFields, type JobFields } from '../models/index.js'
 import { toCompanyProfile } from '../services/companies.js'
+import { closeWaitingRequests, releaseWaitingRequests } from '../services/requests.js'
 import { applicationCounts, jobFields, populateCompany, toManagedJob, type LeanJob } from '../services/jobs.js'
 import type { AdminCompany, AdminSummary } from '../types/index.js'
 import { adminCompanyListSchema, adminJobListSchema, adminJobSchema, companyStatusSchema, featuredSchema, jobStatusSchema } from '../validation/job.js'
@@ -86,7 +87,10 @@ adminRouter.patch('/companies/:id/status', validate({ body: companyStatusSchema 
   await audit(req, { action: `company.${status}`, targetType: 'Company', targetId: company._id, meta: { from: previous, note } })
   invalidateCache('public:')
 
-  const user = await User.findById(company.userId).select('email').lean()
+  const user = await User.findById(company.userId).select('email isVerified').lean()
+  // Contact requests saved while the company waited for approval.
+  if (status === 'approved') await releaseWaitingRequests(req, company._id, Boolean(user?.isVerified))
+  if (status === 'suspended') await closeWaitingRequests(req, company._id, previous === 'pending' ? 'Company not approved' : 'Company suspended')
   if (user) await sendMail(companyStatusMessage(user.email, company.name, status, note))
   const [data] = await toAdminCompanies([company.toObject() as any])
   res.json({ data })

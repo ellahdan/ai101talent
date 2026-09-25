@@ -7,7 +7,7 @@ import { StatusBadge } from '@/components/ui/status-badge'
 import { ACTIVE_REQUEST, availabilityText } from '@/components/talent/TalentCard'
 import { ShortlistDialog } from '@/components/talent/ShortlistDialog'
 import { RequestDialog } from '@/components/talent/RequestDialog'
-import { ContactGate } from '@/components/talent/ContactGate'
+import { ContactGate, useRequestMode } from '@/components/talent/ContactGate'
 import { useTalentDetail } from '@/hooks/useTalent'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useMe } from '@/hooks/useAuth'
@@ -28,6 +28,7 @@ export default function CandidateView() {
 export function CandidateProfile({ id, canAct, searchHref }: { id: string | undefined; canAct: boolean; searchHref: string }) {
   const { data: c, isPending, error } = useTalentDetail(id)
   const [dialog, setDialog] = useState<'save' | 'request' | null>(null)
+  const requestMode = useRequestMode()
   const navigate = useNavigate()
   const t = useT(talentText).profile
   const labels = useT(common)
@@ -109,9 +110,8 @@ export function CandidateProfile({ id, canAct, searchHref }: { id: string | unde
         </aside>
       </div>
 
-      {dialog && !canAct && <ContactGate candidate={c} reason={dialog === 'save' ? 'save' : 'contact'} onClose={() => setDialog(null)} />}
-      {dialog === 'save' && canAct && <ShortlistDialog candidate={c} onClose={() => setDialog(null)} />}
-      {dialog === 'request' && canAct && <RequestDialog candidate={c} onClose={() => setDialog(null)} />}
+      {dialog === 'save' && (canAct ? <ShortlistDialog candidate={c} onClose={() => setDialog(null)} /> : <ContactGate candidate={c} reason="save" onClose={() => setDialog(null)} />)}
+      {dialog === 'request' && (requestMode === 'blocked' ? <ContactGate candidate={c} reason="contact" onClose={() => setDialog(null)} /> : <RequestDialog candidate={c} mode={requestMode} onClose={() => setDialog(null)} />)}
     </>
   )
 }

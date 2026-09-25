@@ -18,12 +18,12 @@ export const searchRouter = Router()
 const GUEST_PAGE_LIMIT = 12
 
 /**
- * Puts the viewer's company on res.locals.company when it is verified and approved, so results can show
- * its own shortlists and request statuses. Everyone else browses as a guest. Never rejects the request.
+ * Puts the viewer's company on res.locals.company (unless suspended), so results can show its own
+ * shortlists and request statuses. Everyone else browses as a guest. Never rejects the request.
  */
 const talentViewer: RequestHandler = async (req, res, next) => {
-  if (req.user?.role === 'company' && req.user.isVerified) {
-    const company = await Company.findOne({ userId: req.user.id, status: 'approved' })
+  if (req.user?.role === 'company') {
+    const company = await Company.findOne({ userId: req.user.id, status: { $ne: 'suspended' } })
     if (company) res.locals.company = company
   }
   next()

@@ -19,7 +19,7 @@ adminRequestsRouter.use(authorize('admin'))
 
 const GROUPS: Record<'action' | 'active' | 'closed', RequestStatus[]> = {
   action: ['pending_admin_review', 'candidate_accepted'],
-  active: ['info_requested', 'forwarded_to_candidate', 'introduced', 'interviewing'],
+  active: ['awaiting_company_approval', 'info_requested', 'forwarded_to_candidate', 'introduced', 'interviewing'],
   closed: ['rejected', 'candidate_declined', 'hired', 'not_selected', 'closed'],
 }
 
